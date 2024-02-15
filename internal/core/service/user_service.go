@@ -8,10 +8,10 @@ import (
 )
 
 type Service struct {
-	repo ports.UserRepo
+	repo ports.UserRepository
 }
 
-func New(repo ports.UserRepo) *Service {
+func New(repo ports.UserRepository) *Service {
 	return &Service{repo: repo}
 }
 func (s *Service) Find(ctx *gin.Context, id string) (*models.User, error) {
