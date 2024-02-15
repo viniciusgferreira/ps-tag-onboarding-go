@@ -1,14 +1,11 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/adapters/config"
 	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/adapters/handler/httpserver"
 	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/adapters/repository"
 	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/core/service"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo/readpref"
 	"log/slog"
 	"os"
 )
@@ -21,22 +18,14 @@ func main() {
 	}
 	slog.Info("Starting the application", "app", cfg.App.Name, "env", cfg.App.Env)
 
-	db, err := repository.Connect(cfg.DB)
-	if err != nil {
-		slog.Error("Error connecting to database", "error", err)
-	}
-	if err := db.Ping(context.TODO(), readpref.Primary()); err != nil {
-		panic(err)
-	}
-	slog.Info("Database Connected")
-	var result bson.M
-	fmt.Println(db.Database("admin").RunCommand(context.TODO(), bson.D{{"ping", 1}}).Decode(&result))
+	db := repository.Connect(cfg.DB)
+
 	userRepo := repository.New(db)
 	userService := service.New(userRepo)
 	userHandler := httpserver.New(userService)
-	router, err := httpserver.NewRouter(cfg.HTTP, *userHandler)
+	router, err := httpserver.NewRouter(*userHandler)
 	if err != nil {
-		slog.Error("Error initializing router", "error", err)
+		slog.Error("initializing router", "error", err)
 		os.Exit(1)
 	}
 
