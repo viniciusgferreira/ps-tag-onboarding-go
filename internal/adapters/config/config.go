@@ -29,23 +29,44 @@ type (
 )
 
 func New() (*Container, error) {
+	var db *DB
+	var http *HTTP
+
 	app := &App{
 		Name: os.Getenv("APP_NAME"),
 		Env:  os.Getenv("APP_ENV"),
 	}
 
-	db := &DB{
-		Host:     os.Getenv("DB_HOST"),
-		Port:     os.Getenv("DB_PORT"),
-		User:     os.Getenv("DB_USER"),
-		Password: os.Getenv("DB_PASSWORD"),
-		Name:     os.Getenv("DB_NAME"),
-		Uri:      os.Getenv("DB_URI"),
+	if app.Env == "prod" {
+		db = &DB{
+			Host:     os.Getenv("DB_HOST"),
+			Port:     os.Getenv("DB_PORT"),
+			User:     os.Getenv("DB_USER"),
+			Password: os.Getenv("DB_PASSWORD"),
+			Name:     os.Getenv("DB_NAME"),
+			Uri:      os.Getenv("DB_URI"),
+		}
+
+		http = &HTTP{
+			URL:  os.Getenv("APP_URL"),
+			Port: os.Getenv("APP_PORT"),
+		}
 	}
 
-	http := &HTTP{
-		URL:  os.Getenv("APP_URL"),
-		Port: os.Getenv("APP_PORT"),
+	if app.Env == "dev" {
+		db = &DB{
+			Host:     "localhost",
+			Port:     "27017",
+			User:     "user",
+			Password: "pass",
+			Name:     "onboardingdb",
+			Uri:      "mongodb://user:pass@localhost:27017",
+		}
+
+		http = &HTTP{
+			URL:  "localhost",
+			Port: "8080",
+		}
 	}
 
 	return &Container{
