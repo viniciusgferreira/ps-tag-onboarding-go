@@ -2,7 +2,6 @@ package httpserver
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/adapters/config"
 )
 
 type Route struct {
@@ -15,7 +14,7 @@ type Router struct {
 	*gin.Engine
 }
 
-func NewRouter(c *config.HTTP, userHandler UserHandler) (*Router, error) {
+func NewRouter(userHandler UserHandler) (*Router, error) {
 	router := gin.Default()
 	routes := userHandler.Routes()
 	for _, r := range routes {
