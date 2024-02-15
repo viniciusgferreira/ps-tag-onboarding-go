@@ -11,6 +11,9 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: user
       MONGO_INITDB_ROOT_PASSWORD: pass
+      MONGO_INITDB_DATABASE: onboardingdb
+    volumes:
+      - mongo_data_onboarding:/data/db
 volumes:
-  mongo_data-vini:
+  mongo_data_onboarding:
     driver: local
