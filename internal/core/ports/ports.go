@@ -10,8 +10,7 @@ type UserService interface {
 	Save(ctx *gin.Context, u *models.User) (*models.User, error)
 }
 
-type UserRepo interface {
+type UserRepository interface {
 	FindById(ctx *gin.Context, id string) (*models.User, error)
-	FindAll(ctx *gin.Context) ([]*models.User, error)
 	Save(ctx *gin.Context, u *models.User) (*models.User, error)
 }
