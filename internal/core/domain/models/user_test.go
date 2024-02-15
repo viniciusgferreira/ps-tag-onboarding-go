@@ -15,7 +15,7 @@ func TestUser(t *testing.T) {
 			email = "john@wex.com"
 			age   = 31
 		)
-		wanted := User{
+		expected := User{
 			ID:        id,
 			FirstName: fn,
 			LastName:  ln,
@@ -24,7 +24,7 @@ func TestUser(t *testing.T) {
 		}
 		got := NewUser(id, fn, ln, email, age)
 		err := got.Validate()
-		if err != nil || !reflect.DeepEqual(wanted, got) {
+		if err != nil || !reflect.DeepEqual(expected, got) {
 			t.Errorf("failed to create valid user")
 		}
 	})
@@ -40,9 +40,9 @@ func TestUser(t *testing.T) {
 	t.Run("return error when wrong uuid format is supplied", func(t *testing.T) {
 		user := User{ID: "12345"}
 		got := user.Validate().Error()
-		wanted := "invalid id"
-		if got != wanted {
-			t.Errorf("got %v, wanted %v", got, wanted)
+		expected := "invalid id"
+		if got != expected {
+			t.Errorf("got %v, expected %v", got, expected)
 		}
 	})
 
@@ -64,9 +64,9 @@ func TestUser(t *testing.T) {
 	t.Run("return error when wrong email format is supplied", func(t *testing.T) {
 		user := NewUser(uuid.NewString(), "john", "Doe", "john@ex.com", 17)
 		got := user.Validate().Error()
-		wanted := "user must be at least 18 years old"
-		if got != wanted {
-			t.Errorf("got %v, wanted %v", got, wanted)
+		expected := "user must be at least 18 years old"
+		if got != expected {
+			t.Errorf("got %v, expected %v", got, expected)
 		}
 	})
 }
