@@ -26,3 +26,11 @@ func (s *Service) Save(ctx *gin.Context, u *models.User) (*models.User, error) {
 	}
 	return user, nil
 }
+
+func (s *Service) Update(ctx *gin.Context, u models.User) (*models.User, error) {
+	user, err := s.repo.Update(ctx, u)
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
+}

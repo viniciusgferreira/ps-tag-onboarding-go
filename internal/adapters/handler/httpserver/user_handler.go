@@ -18,6 +18,7 @@ func (h *UserHandler) Routes() []Route {
 	return []Route{
 		{Method: http.MethodGet, Path: "/users/:id", Handler: h.GetByID},
 		{Method: http.MethodPost, Path: "/users", Handler: h.Create},
+		{Method: http.MethodPut, Path: "/users/:id", Handler: h.Update},
 	}
 }
 
@@ -52,6 +53,30 @@ func (h *UserHandler) Create(ctx *gin.Context) {
 		return
 	}
 	ctx.IndentedJSON(http.StatusCreated, savedUser)
+}
+
+func (h *UserHandler) Update(ctx *gin.Context) {
+	u := models.User{}
+	if err := ctx.BindJSON(&u); err != nil {
+		ctx.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+	u.ID = ctx.Param("id")
+	err := u.Validate()
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
+		return
+	}
+	updatedUser, err := h.service.Update(ctx, u)
+	if err != nil {
+		if errors.Is(err, mongo.ErrUserNotFound) {
+			ctx.AbortWithStatus(http.StatusNotFound)
+			return
+		}
+		_ = ctx.Error(err)
+		return
+	}
+	ctx.JSON(http.StatusOK, updatedUser)
 }
 
 func New(s *service.Service) *UserHandler {
