@@ -47,6 +47,16 @@ func (ur *UserMongoRepository) Save(ctx *gin.Context, u *models.User) (*models.U
 	return u, nil
 }
 
+func (ur *UserMongoRepository) Update(ctx *gin.Context, u models.User) (*models.User, error) {
+	filter := bson.D{{"_id", u.ID}}
+	update := bson.D{{"$set", bson.D{{"firstname", u.FirstName}, {"lastname", u.LastName}, {"email", u.Email}, {"age", u.Age}}}}
+	_, err := ur.db.Database(ur.dbName).Collection("users").UpdateOne(ctx, filter, update)
+	if err != nil {
+		return nil, err
+	}
+	return &u, nil
+}
+
 func New(db *mongo.Client) *UserMongoRepository {
 	return &UserMongoRepository{db: db, dbName: "onboardingdb"}
 }
@@ -64,11 +74,11 @@ func Connect(db *config.DB) *mongo.Client {
 	conn, err := mongo.Connect(context.TODO(), opts)
 	if err != nil {
 		slog.Error("connecting to database", "error", err)
-		panic("database error")
+		panic(err)
 	}
 	if err := conn.Ping(context.TODO(), readpref.Primary()); err != nil {
 		slog.Error("pinging database", "error", err)
-		panic("database error")
+		panic(err)
 	}
 	slog.Info("Database Connected")
 	return conn
