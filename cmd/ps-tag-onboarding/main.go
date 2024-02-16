@@ -13,7 +13,7 @@ import (
 func main() {
 	cfg, err := config.New()
 	if err != nil {
-		slog.Error("Error loading environment variables", "error", err)
+		slog.Error("loading environment variables", "error", err)
 		os.Exit(1)
 	}
 	slog.Info("Starting the application", "app", cfg.App.Name, "env", cfg.App.Env)
