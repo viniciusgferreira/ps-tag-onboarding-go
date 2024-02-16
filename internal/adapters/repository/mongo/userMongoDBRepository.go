@@ -1,4 +1,4 @@
-package repository
+package mongo
 
 import (
 	"context"
@@ -18,7 +18,9 @@ type UserMongoRepository struct {
 	dbName string
 }
 
-var UserNotFound = errors.New("user not found")
+var (
+	ErrUserNotFound = errors.New("user not found")
+)
 
 func (ur *UserMongoRepository) FindById(ctx *gin.Context, id string) (*models.User, error) {
 	filter := bson.D{{"_id", id}}
@@ -26,15 +28,12 @@ func (ur *UserMongoRepository) FindById(ctx *gin.Context, id string) (*models.Us
 	err := ur.db.Database(ur.dbName).Collection("users").FindOne(ctx, filter).Decode(&user)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, UserNotFound
+			return nil, ErrUserNotFound
 		} else {
 			return nil, err
 		}
 	}
 	return user, nil
-}
-func (ur *UserMongoRepository) FindAll(ctx *gin.Context) ([]*models.User, error) {
-	return nil, nil
 }
 func (ur *UserMongoRepository) Save(ctx *gin.Context, u *models.User) (*models.User, error) {
 	filter := bson.D{{"_id", u.ID}}
