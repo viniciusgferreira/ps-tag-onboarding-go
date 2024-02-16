@@ -53,7 +53,11 @@ func New() (*Container, error) {
 		}
 	}
 
-	if app.Env == "dev" {
+	if app.Env == "dev" || len(app.Env) == 0 {
+		app = &App{
+			Name: "tag-onboarding-go",
+			Env:  "dev",
+		}
 		db = &DB{
 			Host:     "localhost",
 			Port:     "27017",
