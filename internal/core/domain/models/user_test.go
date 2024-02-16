@@ -30,7 +30,7 @@ func TestUser(t *testing.T) {
 	})
 
 	t.Run("return error when empty fields is supplied", func(t *testing.T) {
-		user := User{ID: "123"}
+		user := User{}
 		err := user.Validate()
 		if err == nil {
 			t.Error(err)
@@ -39,7 +39,7 @@ func TestUser(t *testing.T) {
 
 	t.Run("return error when wrong uuid format is supplied", func(t *testing.T) {
 		user := User{ID: "12345"}
-		got := user.Validate().Error()
+		got := user.validateID().Error()
 		expected := "invalid id"
 		if got != expected {
 			t.Errorf("got %v, expected %v", got, expected)
@@ -61,7 +61,7 @@ func TestUser(t *testing.T) {
 		}
 	})
 
-	t.Run("return error when wrong email format is supplied", func(t *testing.T) {
+	t.Run("return error when user is under 18 years old", func(t *testing.T) {
 		user := NewUser(uuid.NewString(), "john", "Doe", "john@ex.com", 17)
 		got := user.Validate().Error()
 		expected := "user must be at least 18 years old"
