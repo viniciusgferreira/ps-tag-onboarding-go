@@ -3,7 +3,7 @@ package httpserver
 import (
 	"errors"
 	"github.com/gin-gonic/gin"
-	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/adapters/repository"
+	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/adapters/repository/mongo"
 	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/core/domain/models"
 	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/core/ports"
 	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/core/service"
@@ -24,7 +24,7 @@ func (h *UserHandler) Routes() []Route {
 func (h *UserHandler) GetByID(ctx *gin.Context) {
 	user, err := h.service.Find(ctx, ctx.Param("id"))
 	if err != nil {
-		if errors.Is(err, repository.UserNotFound) {
+		if errors.Is(err, mongo.ErrUserNotFound) {
 			ctx.AbortWithStatus(http.StatusNotFound)
 			return
 		}

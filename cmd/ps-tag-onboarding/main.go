@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/adapters/config"
 	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/adapters/handler/httpserver"
-	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/adapters/repository"
+	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/adapters/repository/mongo"
 	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/core/service"
 	"log/slog"
 	"os"
@@ -18,9 +18,9 @@ func main() {
 	}
 	slog.Info("Starting the application", "app", cfg.App.Name, "env", cfg.App.Env)
 
-	db := repository.Connect(cfg.DB)
+	db := mongo.Connect(cfg.DB)
 
-	userRepo := repository.New(db)
+	userRepo := mongo.New(db)
 	userService := service.New(userRepo)
 	userHandler := httpserver.New(userService)
 	router, err := httpserver.NewRouter(*userHandler)
