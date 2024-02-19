@@ -2,10 +2,33 @@ version: '3.1'
 
 services:
 
+  api:
+    build: .
+    hostname: tag-onboarding-api
+    restart: always
+    depends_on:
+      mongo:
+        condition: service_healthy
+    environment:
+      APP_NAME: tag-onboarding-api
+      APP_ENV: prod
+      DB_URI: mongodb://user:pass@mongo:27017
+      DB_NAME: onboardingdb
+      DB_USER: user
+      DB_PASSWORD: pass
+      APP_PORT: 8080
+    ports:
+      - "8080:8080"
+
   mongo:
     image: mongo
     container_name: mongo
     restart: always
+    healthcheck:
+      test: ["CMD","mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
     ports:
       - "27017:27017"
     environment:
