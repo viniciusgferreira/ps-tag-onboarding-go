@@ -22,6 +22,16 @@ func (h *UserHandler) Routes() []Route {
 	}
 }
 
+// GetByID godoc
+// @Summary Find user by ID
+// @Description Get user based on request path
+// @Tags users
+// @Produce json
+// @Param id path string true "id"
+// @Sucess 201 {object} models.User
+// @Failure 404
+// @Failure 400
+// @Router /users/{id} [get]
 func (h *UserHandler) GetByID(ctx *gin.Context) {
 	user, err := h.service.Find(ctx, ctx.Param("id"))
 	if err != nil {
@@ -59,6 +69,18 @@ func (h *UserHandler) Create(ctx *gin.Context) {
 	ctx.IndentedJSON(http.StatusCreated, savedUser)
 }
 
+// Update godoc
+// @Summary Update user by ID
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param id path int true "ID"
+// @Param User body models.User true "User input"
+// @Sucess 200 {object} models.User
+// @Failure 404 {object} models.User "User not found"
+// @Failure 400 {object} models.User "Invalid id"
+// @Failure 409 "User already exists"
+// @Router /users/{id} [put]
 func (h *UserHandler) Update(ctx *gin.Context) {
 	u := models.User{}
 	if err := ctx.BindJSON(&u); err != nil {
