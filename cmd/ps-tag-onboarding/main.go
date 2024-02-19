@@ -2,6 +2,9 @@ package main
 
 import (
 	"fmt"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
+	_ "github.com/viniciusgferreira/ps-tag-onboarding-go/docs"
 	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/adapters/config"
 	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/adapters/handler/httpserver"
 	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/adapters/repository/mongo"
@@ -10,6 +13,11 @@ import (
 	"os"
 )
 
+// @title           Tag Onboarding Go API
+// @version         1.0
+// @description     This is an api to manager users.
+
+// @host      localhost:8080
 func main() {
 	cfg, err := config.New()
 	if err != nil {
@@ -28,6 +36,8 @@ func main() {
 		slog.Error("initializing router", "error", err)
 		os.Exit(1)
 	}
+
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	addr := fmt.Sprintf("%s:%s", cfg.HTTP.URL, cfg.HTTP.Port)
 	slog.Info("Starting the HTTP server", "listen_address", addr)
