@@ -6,7 +6,6 @@ import (
 	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/adapters/repository/mongo"
 	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/core/domain/models"
 	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/core/ports"
-	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/core/service"
 	"net/http"
 )
 
@@ -120,6 +119,6 @@ func (h *UserHandler) Update(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, updatedUser)
 }
 
-func New(s *service.Service) *UserHandler {
+func New(s ports.UserService) *UserHandler {
 	return &UserHandler{service: s}
 }
