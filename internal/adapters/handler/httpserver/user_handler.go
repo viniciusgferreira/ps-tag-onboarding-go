@@ -29,7 +29,7 @@ func (h *UserHandler) GetByID(ctx *gin.Context) {
 			ctx.AbortWithStatus(http.StatusNotFound)
 			return
 		}
-		_ = ctx.Error(err)
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, err.Error())
 		return
 	}
 	ctx.JSON(http.StatusOK, user)
@@ -49,7 +49,11 @@ func (h *UserHandler) Create(ctx *gin.Context) {
 
 	savedUser, err := h.service.Save(ctx, user)
 	if err != nil {
-		_ = ctx.Error(err)
+		if errors.Is(err, mongo.ErrUserAlreadyExists) {
+			ctx.AbortWithStatusJSON(http.StatusConflict, err.Error())
+			return
+		}
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, err.Error())
 		return
 	}
 	ctx.IndentedJSON(http.StatusCreated, savedUser)
@@ -73,7 +77,11 @@ func (h *UserHandler) Update(ctx *gin.Context) {
 			ctx.AbortWithStatus(http.StatusNotFound)
 			return
 		}
-		_ = ctx.Error(err)
+		if errors.Is(err, mongo.ErrUserAlreadyExists) {
+			ctx.AbortWithStatusJSON(http.StatusConflict, err.Error())
+			return
+		}
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, err.Error())
 		return
 	}
 	ctx.JSON(http.StatusOK, updatedUser)
