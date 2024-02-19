@@ -19,7 +19,8 @@ type UserMongoRepository struct {
 }
 
 var (
-	ErrUserNotFound = errors.New("user not found")
+	ErrUserNotFound      = errors.New("user not found")
+	ErrUserAlreadyExists = errors.New("user with same first and last name already exists")
 )
 
 func (ur *UserMongoRepository) FindById(ctx *gin.Context, id string) (*models.User, error) {
@@ -36,6 +37,9 @@ func (ur *UserMongoRepository) FindById(ctx *gin.Context, id string) (*models.Us
 	return user, nil
 }
 func (ur *UserMongoRepository) Save(ctx *gin.Context, u *models.User) (*models.User, error) {
+	if _, err := ur.ExistsByFirstNameAndLastName(ctx, u.FirstName, u.LastName); err != nil {
+		return nil, err
+	}
 	filter := bson.D{{"_id", u.ID}}
 	update := bson.D{{"$set", bson.D{{"firstname", u.FirstName}, {"lastname", u.LastName}, {"email", u.Email}, {"age", u.Age}}}}
 	opts := options.Update().SetUpsert(true)
@@ -48,6 +52,9 @@ func (ur *UserMongoRepository) Save(ctx *gin.Context, u *models.User) (*models.U
 }
 
 func (ur *UserMongoRepository) Update(ctx *gin.Context, u models.User) (*models.User, error) {
+	if _, err := ur.ExistsByFirstNameAndLastName(ctx, u.FirstName, u.LastName); err != nil {
+		return nil, err
+	}
 	filter := bson.D{{"_id", u.ID}}
 	update := bson.D{{"$set", bson.D{{"firstname", u.FirstName}, {"lastname", u.LastName}, {"email", u.Email}, {"age", u.Age}}}}
 	_, err := ur.db.Database(ur.dbName).Collection("users").UpdateOne(ctx, filter, update)
@@ -55,6 +62,17 @@ func (ur *UserMongoRepository) Update(ctx *gin.Context, u models.User) (*models.
 		return nil, err
 	}
 	return &u, nil
+}
+func (ur *UserMongoRepository) ExistsByFirstNameAndLastName(ctx *gin.Context, firstName, lastName string) (bool, error) {
+	filter := bson.D{{"firstname", firstName}, {"lastname", lastName}}
+	count, err := ur.db.Database(ur.dbName).Collection("users").CountDocuments(ctx, filter)
+	if err != nil {
+		return false, err
+	}
+	if count > 0 {
+		return true, ErrUserAlreadyExists
+	}
+	return false, nil
 }
 
 func New(db *mongo.Client) *UserMongoRepository {
