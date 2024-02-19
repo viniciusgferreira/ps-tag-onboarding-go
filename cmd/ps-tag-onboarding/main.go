@@ -28,7 +28,7 @@ func main() {
 
 	db := mongo.Connect(cfg.DB)
 
-	userRepo := mongo.New(db)
+	userRepo := mongo.New(db, cfg.DB.Name)
 	userService := service.New(userRepo)
 	userHandler := httpserver.New(userService)
 	router, err := httpserver.NewRouter(*userHandler)

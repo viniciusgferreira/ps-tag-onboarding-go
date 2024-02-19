@@ -75,8 +75,8 @@ func (ur *UserMongoRepository) ExistsByFirstNameAndLastName(ctx *gin.Context, fi
 	return false, nil
 }
 
-func New(db *mongo.Client) *UserMongoRepository {
-	return &UserMongoRepository{db: db, dbName: "onboardingdb"}
+func New(db *mongo.Client, dbName string) *UserMongoRepository {
+	return &UserMongoRepository{db: db, dbName: dbName}
 }
 
 func Credentials(db *config.DB) options.Credential {
