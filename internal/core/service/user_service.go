@@ -7,18 +7,18 @@ import (
 	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/core/ports"
 )
 
-type Service struct {
+type UserService struct {
 	repo ports.UserRepository
 }
 
-func New(repo ports.UserRepository) *Service {
-	return &Service{repo: repo}
+func New(repo ports.UserRepository) *UserService {
+	return &UserService{repo: repo}
 }
-func (s *Service) Find(ctx *gin.Context, id string) (*models.User, error) {
+func (s *UserService) Find(ctx *gin.Context, id string) (*models.User, error) {
 	return s.repo.FindById(ctx, id)
 }
 
-func (s *Service) Save(ctx *gin.Context, u models.User) (*models.User, error) {
+func (s *UserService) Save(ctx *gin.Context, u models.User) (*models.User, error) {
 	u.ID = uuid.NewString()
 	user, err := s.repo.Save(ctx, u)
 	if err != nil {
@@ -27,7 +27,7 @@ func (s *Service) Save(ctx *gin.Context, u models.User) (*models.User, error) {
 	return user, nil
 }
 
-func (s *Service) Update(ctx *gin.Context, u models.User) (*models.User, error) {
+func (s *UserService) Update(ctx *gin.Context, u models.User) (*models.User, error) {
 	user, err := s.repo.Update(ctx, u)
 	if err != nil {
 		return nil, err
