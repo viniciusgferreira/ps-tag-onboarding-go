@@ -18,7 +18,7 @@ func (s *Service) Find(ctx *gin.Context, id string) (*models.User, error) {
 	return s.repo.FindById(ctx, id)
 }
 
-func (s *Service) Save(ctx *gin.Context, u *models.User) (*models.User, error) {
+func (s *Service) Save(ctx *gin.Context, u models.User) (*models.User, error) {
 	u.ID = uuid.NewString()
 	user, err := s.repo.Save(ctx, u)
 	if err != nil {

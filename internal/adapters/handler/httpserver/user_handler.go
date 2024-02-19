@@ -45,9 +45,20 @@ func (h *UserHandler) GetByID(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, user)
 }
 
+// Create godoc
+// @Summary Create a new user
+// @Description Create new user based on request body input
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param User body models.User true "User input"
+// @Sucess 201 {object} modes.User
+// @Failure 409
+// @Failure 400
+// @Router /users [post]
 func (h *UserHandler) Create(ctx *gin.Context) {
-	user := &models.User{}
-	if err := ctx.BindJSON(user); err != nil {
+	user := models.User{}
+	if err := ctx.BindJSON(&user); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
