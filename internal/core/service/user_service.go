@@ -19,6 +19,9 @@ func (s *UserService) Find(ctx *gin.Context, id string) (*models.User, error) {
 }
 
 func (s *UserService) Save(ctx *gin.Context, u models.User) (*models.User, error) {
+	if _, err := s.repo.ExistsByFirstNameAndLastName(ctx, u.FirstName, u.LastName); err != nil {
+		return nil, err
+	}
 	u.ID = uuid.NewString()
 	user, err := s.repo.Save(ctx, u)
 	if err != nil {
@@ -28,6 +31,9 @@ func (s *UserService) Save(ctx *gin.Context, u models.User) (*models.User, error
 }
 
 func (s *UserService) Update(ctx *gin.Context, u models.User) (*models.User, error) {
+	if _, err := s.repo.ExistsByFirstNameAndLastName(ctx, u.FirstName, u.LastName); err != nil {
+		return nil, err
+	}
 	user, err := s.repo.Update(ctx, u)
 	if err != nil {
 		return nil, err

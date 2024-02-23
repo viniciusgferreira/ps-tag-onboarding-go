@@ -37,9 +37,6 @@ func (ur *UserMongoRepository) FindById(ctx *gin.Context, id string) (*models.Us
 	return user, nil
 }
 func (ur *UserMongoRepository) Save(ctx *gin.Context, u models.User) (*models.User, error) {
-	if _, err := ur.ExistsByFirstNameAndLastName(ctx, u.FirstName, u.LastName); err != nil {
-		return nil, err
-	}
 	filter := bson.D{{"_id", u.ID}}
 	update := bson.D{{"$set", bson.D{{"firstname", u.FirstName}, {"lastname", u.LastName}, {"email", u.Email}, {"age", u.Age}}}}
 	opts := options.Update().SetUpsert(true)
@@ -51,9 +48,6 @@ func (ur *UserMongoRepository) Save(ctx *gin.Context, u models.User) (*models.Us
 }
 
 func (ur *UserMongoRepository) Update(ctx *gin.Context, u models.User) (*models.User, error) {
-	if _, err := ur.ExistsByFirstNameAndLastName(ctx, u.FirstName, u.LastName); err != nil {
-		return nil, err
-	}
 	filter := bson.D{{"_id", u.ID}}
 	update := bson.D{{"$set", bson.D{{"firstname", u.FirstName}, {"lastname", u.LastName}, {"email", u.Email}, {"age", u.Age}}}}
 	_, err := ur.db.Database(ur.dbName).Collection("users").UpdateOne(ctx, filter, update)
