@@ -78,16 +78,13 @@ func New(db *mongo.Client, dbName string) *UserMongoRepository {
 	return &UserMongoRepository{db: db, dbName: dbName}
 }
 
-func Credentials(db config.DB) options.Credential {
-	return options.Credential{
-		Username: db.User,
-		Password: db.Password,
-	}
-}
-
 func Connect(db config.DB) *mongo.Client {
 	slog.Info("Connecting to mongodb database")
-	opts := options.Client().ApplyURI(db.Uri).SetAuth(Credentials(db))
+	opts := options.Client().ApplyURI(db.Uri).SetAuth(
+		options.Credential{
+			Username: db.User,
+			Password: db.Password,
+		})
 	conn, err := mongo.Connect(context.TODO(), opts)
 	if err != nil {
 		slog.Error("connecting to database", "error", err)
