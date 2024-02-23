@@ -16,6 +16,7 @@ type UserService struct {
 var (
 	ErrUserNotFound      = errors.New("user not found")
 	ErrUserAlreadyExists = errors.New("user with same first and last name already exists")
+	ErrInvalidUser       = errors.New("invalid user")
 )
 
 func New(repo ports.UserRepository) *UserService {
@@ -33,6 +34,10 @@ func (s *UserService) Find(ctx *gin.Context, id string) (*models.User, error) {
 }
 
 func (s *UserService) Save(ctx *gin.Context, u models.User) (*models.User, error) {
+	err := u.Validate()
+	if err != nil {
+		return nil, ErrInvalidUser
+	}
 	exists, err := s.repo.ExistsByFirstNameAndLastName(ctx, u.FirstName, u.LastName)
 	if err != nil {
 		return nil, err
@@ -49,7 +54,11 @@ func (s *UserService) Save(ctx *gin.Context, u models.User) (*models.User, error
 }
 
 func (s *UserService) Update(ctx *gin.Context, u models.User) (*models.User, error) {
-	_, err := s.repo.FindById(ctx, u.ID)
+	err := u.Validate()
+	if err != nil {
+		return nil, ErrInvalidUser
+	}
+	_, err = s.repo.FindById(ctx, u.ID)
 	if err != nil {
 		return nil, ErrUserNotFound
 	}

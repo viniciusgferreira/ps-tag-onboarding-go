@@ -61,16 +61,14 @@ func (h *UserHandler) Create(ctx *gin.Context) {
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
-	err := user.Validate()
-	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
-		return
-	}
-
 	savedUser, err := h.service.Save(ctx, user)
 	if err != nil {
 		if errors.Is(err, service.ErrUserAlreadyExists) {
 			ctx.AbortWithStatusJSON(http.StatusConflict, err.Error())
+			return
+		}
+		if errors.Is(err, service.ErrInvalidUser) {
+			ctx.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
 			return
 		}
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, err.Error())
@@ -93,27 +91,23 @@ func (h *UserHandler) Create(ctx *gin.Context) {
 // @Router /users/{id} [put]
 func (h *UserHandler) Update(ctx *gin.Context) {
 	u := models.User{}
+	u.ID = ctx.Param("id")
 	if err := ctx.BindJSON(&u); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
-	u.ID = ctx.Param("id")
-	err := u.Validate()
-	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
-		return
-	}
 	updatedUser, err := h.service.Update(ctx, u)
 	if err != nil {
-		if errors.Is(err, service.ErrUserNotFound) {
+		switch {
+		case errors.Is(err, service.ErrInvalidUser):
+			ctx.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
+		case errors.Is(err, service.ErrUserNotFound):
 			ctx.AbortWithStatus(http.StatusNotFound)
-			return
-		}
-		if errors.Is(err, service.ErrUserAlreadyExists) {
+		case errors.Is(err, service.ErrUserAlreadyExists):
 			ctx.AbortWithStatusJSON(http.StatusConflict, err.Error())
-			return
+		default:
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, err.Error())
 		}
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, err.Error())
 		return
 	}
 	ctx.JSON(http.StatusOK, updatedUser)
