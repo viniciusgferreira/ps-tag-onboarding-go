@@ -3,9 +3,9 @@ package httpserver
 import (
 	"errors"
 	"github.com/gin-gonic/gin"
-	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/adapters/repository/mongo"
 	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/core/domain/models"
 	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/core/ports"
+	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/core/service"
 	"net/http"
 )
 
@@ -34,7 +34,7 @@ func (h *UserHandler) Routes() []Route {
 func (h *UserHandler) GetByID(ctx *gin.Context) {
 	user, err := h.service.Find(ctx, ctx.Param("id"))
 	if err != nil {
-		if errors.Is(err, mongo.ErrUserNotFound) {
+		if errors.Is(err, service.ErrUserNotFound) {
 			ctx.AbortWithStatus(http.StatusNotFound)
 			return
 		}
@@ -69,7 +69,7 @@ func (h *UserHandler) Create(ctx *gin.Context) {
 
 	savedUser, err := h.service.Save(ctx, user)
 	if err != nil {
-		if errors.Is(err, mongo.ErrUserAlreadyExists) {
+		if errors.Is(err, service.ErrUserAlreadyExists) {
 			ctx.AbortWithStatusJSON(http.StatusConflict, err.Error())
 			return
 		}
@@ -105,11 +105,11 @@ func (h *UserHandler) Update(ctx *gin.Context) {
 	}
 	updatedUser, err := h.service.Update(ctx, u)
 	if err != nil {
-		if errors.Is(err, mongo.ErrUserNotFound) {
+		if errors.Is(err, service.ErrUserNotFound) {
 			ctx.AbortWithStatus(http.StatusNotFound)
 			return
 		}
-		if errors.Is(err, mongo.ErrUserAlreadyExists) {
+		if errors.Is(err, service.ErrUserAlreadyExists) {
 			ctx.AbortWithStatusJSON(http.StatusConflict, err.Error())
 			return
 		}

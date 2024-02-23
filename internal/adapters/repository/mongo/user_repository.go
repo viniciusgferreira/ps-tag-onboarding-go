@@ -2,7 +2,6 @@ package mongo
 
 import (
 	"context"
-	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/adapters/config"
 	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/core/domain/models"
@@ -18,21 +17,12 @@ type UserMongoRepository struct {
 	dbName string
 }
 
-var (
-	ErrUserNotFound      = errors.New("user not found")
-	ErrUserAlreadyExists = errors.New("user with same first and last name already exists")
-)
-
 func (ur *UserMongoRepository) FindById(ctx *gin.Context, id string) (*models.User, error) {
 	filter := bson.D{{"_id", id}}
 	var user *models.User
 	err := ur.db.Database(ur.dbName).Collection("users").FindOne(ctx, filter).Decode(&user)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, ErrUserNotFound
-		} else {
-			return nil, err
-		}
+		return nil, err
 	}
 	return user, nil
 }
@@ -48,13 +38,16 @@ func (ur *UserMongoRepository) Save(ctx *gin.Context, u models.User) (*models.Us
 }
 
 func (ur *UserMongoRepository) Update(ctx *gin.Context, u models.User) (*models.User, error) {
+	updatedUser := &models.User{}
 	filter := bson.D{{"_id", u.ID}}
+	ret := options.ReturnDocument(1)
+	opts := options.FindOneAndUpdateOptions{ReturnDocument: &ret}
 	update := bson.D{{"$set", bson.D{{"firstname", u.FirstName}, {"lastname", u.LastName}, {"email", u.Email}, {"age", u.Age}}}}
-	_, err := ur.db.Database(ur.dbName).Collection("users").UpdateOne(ctx, filter, update)
+	err := ur.db.Database(ur.dbName).Collection("users").FindOneAndUpdate(ctx, filter, update, &opts).Decode(updatedUser)
 	if err != nil {
 		return nil, err
 	}
-	return &u, nil
+	return updatedUser, nil
 }
 func (ur *UserMongoRepository) ExistsByFirstNameAndLastName(ctx *gin.Context, firstName, lastName string) (bool, error) {
 	filter := bson.D{{"firstname", firstName}, {"lastname", lastName}}
@@ -63,7 +56,7 @@ func (ur *UserMongoRepository) ExistsByFirstNameAndLastName(ctx *gin.Context, fi
 		return false, err
 	}
 	if count > 0 {
-		return true, ErrUserAlreadyExists
+		return true, nil
 	}
 	return false, nil
 }
