@@ -26,7 +26,7 @@ func main() {
 	}
 	slog.Info("Starting the application", "app", cfg.App.Name, "env", cfg.App.Env)
 
-	db := mongo.Connect(cfg.DB)
+	db := mongo.Connect(*cfg.DB)
 
 	userRepo := mongo.New(db, cfg.DB.Name)
 	userService := service.New(userRepo)
