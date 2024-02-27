@@ -34,11 +34,7 @@ func (h *UserHandler) Routes() []Route {
 func (h *UserHandler) GetByID(ctx *gin.Context) {
 	user, err := h.service.Find(ctx, ctx.Param("id"))
 	if err != nil {
-		if errors.Is(err, service.ErrUserNotFound) {
-			ctx.AbortWithStatus(http.StatusNotFound)
-			return
-		}
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, err.Error())
+		checkErr(ctx, err)
 		return
 	}
 	ctx.JSON(http.StatusOK, user)
@@ -57,21 +53,13 @@ func (h *UserHandler) GetByID(ctx *gin.Context) {
 // @Router /users [post]
 func (h *UserHandler) Create(ctx *gin.Context) {
 	user := models.User{}
-	if err := ctx.BindJSON(&user); err != nil {
+	if err := ctx.ShouldBindJSON(&user); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
 	savedUser, err := h.service.Save(ctx, user)
 	if err != nil {
-		if errors.Is(err, service.ErrUserAlreadyExists) {
-			ctx.AbortWithStatusJSON(http.StatusConflict, err.Error())
-			return
-		}
-		if errors.Is(err, service.ErrInvalidUser) {
-			ctx.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
-			return
-		}
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, err.Error())
+		checkErr(ctx, err)
 		return
 	}
 	ctx.IndentedJSON(http.StatusCreated, savedUser)
@@ -98,16 +86,7 @@ func (h *UserHandler) Update(ctx *gin.Context) {
 	}
 	updatedUser, err := h.service.Update(ctx, u)
 	if err != nil {
-		switch {
-		case errors.Is(err, service.ErrInvalidUser):
-			ctx.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
-		case errors.Is(err, service.ErrUserNotFound):
-			ctx.AbortWithStatus(http.StatusNotFound)
-		case errors.Is(err, service.ErrUserAlreadyExists):
-			ctx.AbortWithStatusJSON(http.StatusConflict, err.Error())
-		default:
-			ctx.AbortWithStatusJSON(http.StatusInternalServerError, err.Error())
-		}
+		checkErr(ctx, err)
 		return
 	}
 	ctx.JSON(http.StatusOK, updatedUser)
@@ -115,4 +94,23 @@ func (h *UserHandler) Update(ctx *gin.Context) {
 
 func New(s ports.UserService) *UserHandler {
 	return &UserHandler{service: s}
+}
+
+func checkErr(ctx *gin.Context, err error) {
+	switch {
+	case errors.Is(err, service.ErrInvalidName):
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
+	case errors.Is(err, service.ErrInvalidAge):
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
+	case errors.Is(err, service.ErrInvalidEmail):
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
+	case errors.Is(err, service.ErrInvalidID):
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
+	case errors.Is(err, service.ErrUserNotFound):
+		ctx.AbortWithStatus(http.StatusNotFound)
+	case errors.Is(err, service.ErrUserAlreadyExists):
+		ctx.AbortWithStatusJSON(http.StatusConflict, err.Error())
+	default:
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, err.Error())
+	}
 }

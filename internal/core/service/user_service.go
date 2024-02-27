@@ -3,10 +3,11 @@ package service
 import (
 	"errors"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/core/domain/models"
 	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/core/ports"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"regexp"
 )
 
 type UserService struct {
@@ -14,15 +15,22 @@ type UserService struct {
 }
 
 var (
-	ErrUserNotFound      = errors.New("user not found")
-	ErrUserAlreadyExists = errors.New("user with same first and last name already exists")
-	ErrInvalidUser       = errors.New("invalid user")
+	ErrUserNotFound      = errors.New("User not found")
+	ErrUserAlreadyExists = errors.New("User with same first and last name already exists")
+	ErrInvalidAge        = errors.New("User must be at least 18 years old")
+	ErrInvalidName       = errors.New("User first and last name cannot be empty")
+	ErrInvalidEmail      = errors.New("Invalid email format")
+	ErrInvalidID         = errors.New("Invalid id (ObjectID)")
 )
 
 func New(repo ports.UserRepository) *UserService {
 	return &UserService{repo: repo}
 }
 func (s *UserService) Find(ctx *gin.Context, id string) (*models.User, error) {
+	err := s.validateID(id)
+	if err != nil {
+		return nil, err
+	}
 	user, err := s.repo.FindById(ctx, id)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
@@ -34,9 +42,9 @@ func (s *UserService) Find(ctx *gin.Context, id string) (*models.User, error) {
 }
 
 func (s *UserService) Save(ctx *gin.Context, u models.User) (*models.User, error) {
-	err := u.Validate()
+	err := s.Validate(u)
 	if err != nil {
-		return nil, ErrInvalidUser
+		return nil, err
 	}
 	exists, err := s.repo.ExistsByFirstNameAndLastName(ctx, u.FirstName, u.LastName)
 	if err != nil {
@@ -45,7 +53,6 @@ func (s *UserService) Save(ctx *gin.Context, u models.User) (*models.User, error
 	if exists {
 		return nil, ErrUserAlreadyExists
 	}
-	u.ID = uuid.NewString()
 	user, err := s.repo.Save(ctx, u)
 	if err != nil {
 		return nil, err
@@ -54,9 +61,13 @@ func (s *UserService) Save(ctx *gin.Context, u models.User) (*models.User, error
 }
 
 func (s *UserService) Update(ctx *gin.Context, u models.User) (*models.User, error) {
-	err := u.Validate()
+	err := s.validateID(u.ID)
 	if err != nil {
-		return nil, ErrInvalidUser
+		return nil, err
+	}
+	err = s.Validate(u)
+	if err != nil {
+		return nil, err
 	}
 	_, err = s.repo.FindById(ctx, u.ID)
 	if err != nil {
@@ -74,4 +85,48 @@ func (s *UserService) Update(ctx *gin.Context, u models.User) (*models.User, err
 		return nil, err
 	}
 	return user, nil
+}
+func (s *UserService) Validate(u models.User) error {
+	if err := s.validateName(u.FirstName, u.LastName); err != nil {
+		return err
+	}
+	if err := s.validateEmail(u.Email); err != nil {
+		return err
+	}
+	if err := s.validateAge(u.Age); err != nil {
+		return err
+	}
+	return nil
+}
+func (s *UserService) validateID(id string) error {
+	_, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return ErrInvalidID
+	}
+	return nil
+}
+
+func (s *UserService) validateName(firstName, lastName string) error {
+	if len(firstName) <= 0 || len(lastName) <= 0 {
+		return ErrInvalidName
+	}
+	return nil
+}
+
+func (s *UserService) validateEmail(email string) error {
+	if len(email) <= 0 {
+		return errors.New("email cannot be empty")
+	}
+	emailRegex := regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
+	if !emailRegex.MatchString(email) {
+		return ErrInvalidEmail
+	}
+	return nil
+}
+
+func (s *UserService) validateAge(age int) error {
+	if age < 18 {
+		return ErrInvalidAge
+	}
+	return nil
 }
