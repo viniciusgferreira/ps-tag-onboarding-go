@@ -28,7 +28,7 @@ type (
 	}
 )
 
-func New() (*Container, error) {
+func New() Container {
 	var db *DB
 	var http *HTTP
 
@@ -73,9 +73,9 @@ func New() (*Container, error) {
 		}
 	}
 
-	return &Container{
+	return Container{
 		app,
 		db,
 		http,
-	}, nil
+	}
 }
