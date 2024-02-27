@@ -14,6 +14,26 @@ type UserService struct {
 	repo ports.UserRepository
 }
 
+type InvalidUserResponse struct {
+	Name    string   `json:"error"`
+	Details []string `json:"details,omitempty"`
+}
+
+func (r InvalidUserResponse) Error() string {
+	return r.Name
+}
+
+func (r InvalidUserResponse) New(validationErrors []error) InvalidUserResponse {
+	details := make([]string, len(validationErrors))
+	for i, err := range validationErrors {
+		details[i] = err.Error()
+	}
+	return InvalidUserResponse{
+		Name:    "User did not pass validation",
+		Details: details,
+	}
+}
+
 var (
 	ErrUserNotFound      = errors.New("User not found")
 	ErrUserAlreadyExists = errors.New("User with same first and last name already exists")
@@ -42,9 +62,10 @@ func (s *UserService) Find(ctx *gin.Context, id string) (*models.User, error) {
 }
 
 func (s *UserService) Save(ctx *gin.Context, u models.User) (*models.User, error) {
-	err := s.Validate(u)
-	if err != nil {
-		return nil, err
+	validationErrors := s.Validate(u)
+	if validationErrors != nil {
+		errorsReponse := InvalidUserResponse{}
+		return nil, errorsReponse.New(validationErrors)
 	}
 	exists, err := s.repo.ExistsByFirstNameAndLastName(ctx, u.FirstName, u.LastName)
 	if err != nil {
@@ -65,9 +86,10 @@ func (s *UserService) Update(ctx *gin.Context, u models.User) (*models.User, err
 	if err != nil {
 		return nil, err
 	}
-	err = s.Validate(u)
-	if err != nil {
-		return nil, err
+	validationErrors := s.Validate(u)
+	if validationErrors != nil {
+		errorsReponse := InvalidUserResponse{}
+		return nil, errorsReponse.New(validationErrors)
 	}
 	_, err = s.repo.FindById(ctx, u.ID)
 	if err != nil {
@@ -86,15 +108,19 @@ func (s *UserService) Update(ctx *gin.Context, u models.User) (*models.User, err
 	}
 	return user, nil
 }
-func (s *UserService) Validate(u models.User) error {
+func (s *UserService) Validate(u models.User) []error {
+	var validationErrors []error
 	if err := s.validateName(u.FirstName, u.LastName); err != nil {
-		return err
+		validationErrors = append(validationErrors, err)
 	}
 	if err := s.validateEmail(u.Email); err != nil {
-		return err
+		validationErrors = append(validationErrors, err)
 	}
 	if err := s.validateAge(u.Age); err != nil {
-		return err
+		validationErrors = append(validationErrors, err)
+	}
+	if len(validationErrors) > 0 {
+		return validationErrors
 	}
 	return nil
 }
