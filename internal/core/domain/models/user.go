@@ -7,11 +7,11 @@ import (
 )
 
 type User struct {
-	ID        string `json:"id,omitempty"`
-	FirstName string `json:"firstName"`
-	LastName  string `json:"lastName"`
-	Email     string `json:"email"`
-	Age       int    `json:"age"`
+	ID        string `bson:"_id,omitempty" json:"id,omitempty"`
+	FirstName string `bson:"firstName" json:"firstName"`
+	LastName  string `bson:"lastName" json:"lastName"`
+	Email     string `bson:"email" json:"email"`
+	Age       int    `bson:"age" json:"age"`
 }
 
 func NewUser(id, firstName, lastName, email string, age int) User {
