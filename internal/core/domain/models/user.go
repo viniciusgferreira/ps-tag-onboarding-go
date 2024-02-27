@@ -7,14 +7,3 @@ type User struct {
 	Email     string `bson:"email" json:"email"`
 	Age       int    `bson:"age" json:"age"`
 }
-
-func NewUser(id, firstName, lastName, email string, age int) User {
-	user := User{
-		ID:        id,
-		FirstName: firstName,
-		LastName:  lastName,
-		Email:     email,
-		Age:       age,
-	}
-	return user
-}
