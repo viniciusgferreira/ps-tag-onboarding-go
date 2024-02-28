@@ -100,12 +100,6 @@ func checkErr(ctx *gin.Context, err error) {
 	switch {
 	case errors.As(err, &service.InvalidUserResponse{}):
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, err)
-	case errors.Is(err, service.ErrInvalidName):
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
-	case errors.Is(err, service.ErrInvalidAge):
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
-	case errors.Is(err, service.ErrInvalidEmail):
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
 	case errors.Is(err, service.ErrInvalidID):
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
 	case errors.Is(err, service.ErrUserNotFound):
