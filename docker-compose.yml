@@ -12,11 +12,7 @@ services:
     environment:
       APP_NAME: tag-onboarding-api
       APP_ENV: prod
-      DB_URI: mongodb://user:pass@mongo:27017
-      DB_NAME: onboardingdb
-      DB_USER: user
-      DB_PASSWORD: pass
-      APP_PORT: 8080
+      CONFIG_PATH: /app/configs
     ports:
       - "8080:8080"
 

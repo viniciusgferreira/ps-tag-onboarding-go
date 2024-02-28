@@ -17,12 +17,11 @@ import (
 func main() {
 	cfg := config.New()
 	slog.Info("Starting the application", "app", cfg.App.Name, "env", cfg.App.Env)
-
 	db := mongo.Connect(*cfg.DB)
 	userRepo := mongo.New(db, cfg.DB.Name)
 	userService := service.New(userRepo)
 	userHandler := httpserver.New(userService)
-	router := httpserver.NewRouter(*userHandler)
+	router := httpserver.NewRouter(*userHandler, cfg.HTTP.GinMode)
 
 	router.StartServer(cfg.HTTP.URL, cfg.HTTP.Port)
 }

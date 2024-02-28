@@ -1,81 +1,62 @@
 package config
 
-import "os"
+import (
+	"fmt"
+	"gopkg.in/yaml.v3"
+	"log/slog"
+	"os"
+	"path/filepath"
+)
 
 type (
 	App struct {
-		Name string
-		Env  string
+		Name string `yaml:"name"`
+		Env  string `yaml:"environment"`
 	}
 	HTTP struct {
-		Env  string
-		URL  string
-		Port string
+		GinMode string `yaml:"ginMode"`
+		URL     string `yaml:"url"`
+		Port    string `yaml:"port"`
 	}
 
 	DB struct {
-		Uri      string
-		Host     string
-		Port     string
-		User     string
-		Password string
-		Name     string
+		Uri      string `yaml:"uri"`
+		Host     string `yaml:"host"`
+		Port     string `yaml:"port"`
+		User     string `yaml:"username"`
+		Password string `yaml:"password"`
+		Name     string `yaml:"dbName"`
 	}
-	Container struct {
-		App  *App
-		DB   *DB
-		HTTP *HTTP
+
+	Config struct {
+		App  *App  `yaml:"app"`
+		HTTP *HTTP `yaml:"server"`
+		DB   *DB   `yaml:"mongo"`
 	}
 )
 
-func New() Container {
-	var db *DB
-	var http *HTTP
+func New() Config {
+	return loadEnv()
+}
 
-	app := &App{
-		Name: os.Getenv("APP_NAME"),
-		Env:  os.Getenv("APP_ENV"),
+func loadEnv() Config {
+	path, err := filepath.Abs(os.Getenv("CONFIG_PATH"))
+	if err != nil {
+		slog.Error("file path:", err.Error())
 	}
-
-	if app.Env == "prod" {
-		db = &DB{
-			Host:     os.Getenv("DB_HOST"),
-			Port:     os.Getenv("DB_PORT"),
-			User:     os.Getenv("DB_USER"),
-			Password: os.Getenv("DB_PASSWORD"),
-			Name:     os.Getenv("DB_NAME"),
-			Uri:      os.Getenv("DB_URI"),
-		}
-
-		http = &HTTP{
-			URL:  os.Getenv("APP_URL"),
-			Port: os.Getenv("APP_PORT"),
-		}
+	configFileName := fmt.Sprintf("%s/%s.yml", path, os.Getenv("APP_ENV"))
+	yamlFile, err := os.ReadFile(configFileName)
+	if err != nil {
+		slog.Error("Yaml file:", err.Error())
 	}
-
-	if app.Env == "dev" || len(app.Env) == 0 {
-		app = &App{
-			Name: "tag-onboarding-go",
-			Env:  "dev",
-		}
-		db = &DB{
-			Host:     "localhost",
-			Port:     "27017",
-			User:     "user",
-			Password: "pass",
-			Name:     "onboardingdb",
-			Uri:      "mongodb://user:pass@localhost:27017",
-		}
-
-		http = &HTTP{
-			URL:  "localhost",
-			Port: "8080",
-		}
+	config := Config{
+		App:  &App{},
+		HTTP: &HTTP{},
+		DB:   &DB{},
 	}
-
-	return Container{
-		app,
-		db,
-		http,
+	err = yaml.Unmarshal(yamlFile, &config)
+	if err != nil {
+		slog.Error("Unmarshal error:", err.Error())
 	}
+	return config
 }
