@@ -1,7 +1,6 @@
 package config
 
 import (
-	"fmt"
 	"gopkg.in/yaml.v3"
 	"log/slog"
 	"os"
@@ -36,16 +35,11 @@ type (
 )
 
 func New() Config {
-	return loadEnv()
-}
-
-func loadEnv() Config {
-	path, err := filepath.Abs(os.Getenv("CONFIG_PATH"))
+	filePath, err := filepath.Abs(os.Getenv("CONFIG_PATH"))
 	if err != nil {
-		slog.Error("file path:", err.Error())
+		slog.Error("File path:", err.Error())
 	}
-	configFileName := fmt.Sprintf("%s/%s.yml", path, os.Getenv("APP_ENV"))
-	yamlFile, err := os.ReadFile(configFileName)
+	yamlFile, err := os.ReadFile(filePath)
 	if err != nil {
 		slog.Error("Yaml file:", err.Error())
 	}

@@ -10,9 +10,7 @@ services:
       mongo:
         condition: service_healthy
     environment:
-      APP_NAME: tag-onboarding-api
-      APP_ENV: prod
-      CONFIG_PATH: /app/configs
+      CONFIG_PATH: /app/configs/config.yml
     ports:
       - "8080:8080"
 
