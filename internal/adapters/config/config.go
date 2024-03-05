@@ -43,11 +43,7 @@ func New() Config {
 	if err != nil {
 		slog.Error("Yaml file:", err.Error())
 	}
-	config := Config{
-		App:  &App{},
-		HTTP: &HTTP{},
-		DB:   &DB{},
-	}
+	var config Config
 	err = yaml.Unmarshal(yamlFile, &config)
 	if err != nil {
 		slog.Error("Unmarshal error:", err.Error())
