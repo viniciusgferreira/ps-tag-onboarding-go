@@ -18,7 +18,7 @@ func main() {
 	cfg := config.New()
 	slog.Info("Starting the application", "app", cfg.App.Name, "env", cfg.App.Env)
 	db := mongo.Connect(*cfg.DB)
-	userRepo := mongo.New(db, cfg.DB.Name)
+	userRepo := mongo.New(db)
 	userService := service.New(userRepo)
 	userHandler := httpserver.New(userService)
 	router := httpserver.NewRouter(*userHandler, cfg.HTTP.GinMode)

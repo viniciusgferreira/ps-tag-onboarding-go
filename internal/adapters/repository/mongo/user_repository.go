@@ -13,9 +13,14 @@ import (
 	"log/slog"
 )
 
+const userCollection = "users"
+
 type UserMongoRepository struct {
-	db     *mongo.Client
-	dbName string
+	db *mongo.Database
+}
+
+func New(db *mongo.Database) *UserMongoRepository {
+	return &UserMongoRepository{db: db}
 }
 
 func (ur *UserMongoRepository) FindById(ctx *gin.Context, id string) (*models.User, error) {
@@ -25,14 +30,14 @@ func (ur *UserMongoRepository) FindById(ctx *gin.Context, id string) (*models.Us
 	}
 	filter := bson.D{{"_id", oid}}
 	var user *models.User
-	err = ur.db.Database(ur.dbName).Collection("users").FindOne(ctx, filter).Decode(&user)
+	err = ur.db.Collection(userCollection).FindOne(ctx, filter).Decode(&user)
 	if err != nil {
 		return nil, err
 	}
 	return user, nil
 }
 func (ur *UserMongoRepository) Save(ctx *gin.Context, u models.User) (*models.User, error) {
-	result, err := ur.db.Database(ur.dbName).Collection("users").InsertOne(ctx, u)
+	result, err := ur.db.Collection(userCollection).InsertOne(ctx, u)
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +55,7 @@ func (ur *UserMongoRepository) Update(ctx *gin.Context, u models.User) (*models.
 	ret := options.ReturnDocument(1)
 	opts := options.FindOneAndUpdateOptions{ReturnDocument: &ret}
 	update := bson.D{{"$set", bson.D{{"firstName", u.FirstName}, {"lastName", u.LastName}, {"email", u.Email}, {"age", u.Age}}}}
-	err = ur.db.Database(ur.dbName).Collection("users").FindOneAndUpdate(ctx, filter, update, &opts).Decode(updatedUser)
+	err = ur.db.Collection(userCollection).FindOneAndUpdate(ctx, filter, update, &opts).Decode(updatedUser)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +63,7 @@ func (ur *UserMongoRepository) Update(ctx *gin.Context, u models.User) (*models.
 }
 func (ur *UserMongoRepository) ExistsByFirstNameAndLastName(ctx *gin.Context, firstName, lastName string) (bool, error) {
 	filter := bson.D{{"firstName", firstName}, {"lastName", lastName}}
-	count, err := ur.db.Database(ur.dbName).Collection("users").CountDocuments(ctx, filter)
+	count, err := ur.db.Collection(userCollection).CountDocuments(ctx, filter)
 	if err != nil {
 		return false, err
 	}
@@ -68,11 +73,7 @@ func (ur *UserMongoRepository) ExistsByFirstNameAndLastName(ctx *gin.Context, fi
 	return false, nil
 }
 
-func New(db *mongo.Client, dbName string) *UserMongoRepository {
-	return &UserMongoRepository{db: db, dbName: dbName}
-}
-
-func Connect(db config.DB) *mongo.Client {
+func Connect(db config.DB) *mongo.Database {
 	slog.Info("Connecting to mongodb database")
 	opts := options.Client().ApplyURI(db.Uri).SetAuth(
 		options.Credential{
@@ -89,5 +90,5 @@ func Connect(db config.DB) *mongo.Client {
 		panic(err)
 	}
 	slog.Info("Database Connected")
-	return conn
+	return conn.Database(db.Name)
 }
