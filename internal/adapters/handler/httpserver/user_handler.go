@@ -98,7 +98,7 @@ func New(s ports.UserService) *UserHandler {
 
 func checkErr(ctx *gin.Context, err error) {
 	switch {
-	case errors.As(err, &service.ValidationError{}):
+	case errors.As(err, &service.CustomError{}):
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, err)
 	case errors.Is(err, service.ErrInvalidID):
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, err.Error())

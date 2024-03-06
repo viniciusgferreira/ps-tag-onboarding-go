@@ -6,13 +6,12 @@ import (
 	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/core/domain/models"
 	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/core/ports"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
 	"regexp"
 )
 
 var (
 	ErrUserNotFound      = errors.New("User not found")
-	ErrUserAlreadyExists = errors.New("User with same first and last name already exists")
+	ErrUserAlreadyExists = errors.New("User with the same first and last name already exists")
 	ErrInvalidAge        = errors.New("User must be at least 18 years old")
 	ErrInvalidName       = errors.New("User first and last name cannot be empty")
 	ErrInvalidEmail      = errors.New("Invalid email format")
@@ -27,23 +26,27 @@ func New(repo ports.UserRepository) *UserService {
 	return &UserService{repo: repo}
 }
 
-type ValidationError struct {
+type CustomError struct {
 	Message string   `json:"error"`
 	Details []string `json:"details,omitempty"`
 }
 
-func NewValidationError(validationErrors []error) ValidationError {
+func NewCustomError(err error) CustomError {
+	return CustomError{Message: err.Error()}
+}
+
+func NewValidationError(validationErrors []error) CustomError {
 	details := make([]string, len(validationErrors))
 	for i, err := range validationErrors {
 		details[i] = err.Error()
 	}
-	return ValidationError{
+	return CustomError{
 		Message: "User did not pass validation",
 		Details: details,
 	}
 }
 
-func (r ValidationError) Error() string {
+func (r CustomError) Error() string {
 	return r.Message
 }
 
@@ -54,10 +57,10 @@ func (s *UserService) Find(ctx *gin.Context, id string) (*models.User, error) {
 	}
 	user, err := s.repo.FindById(ctx, id)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, ErrUserNotFound
-		}
-		return nil, err
+		return nil, NewCustomError(err)
+	}
+	if user == nil {
+		return nil, NewCustomError(ErrUserNotFound)
 	}
 	return user, nil
 }
@@ -72,7 +75,7 @@ func (s *UserService) Save(ctx *gin.Context, u models.User) (*models.User, error
 		return nil, err
 	}
 	if exists {
-		return nil, ErrUserAlreadyExists
+		return nil, NewValidationError([]error{ErrUserAlreadyExists})
 	}
 	user, err := s.repo.Save(ctx, u)
 	if err != nil {
@@ -92,14 +95,14 @@ func (s *UserService) Update(ctx *gin.Context, u models.User) (*models.User, err
 	}
 	_, err = s.repo.FindById(ctx, u.ID)
 	if err != nil {
-		return nil, ErrUserNotFound
+		return nil, NewCustomError(ErrUserNotFound)
 	}
 	exists, err := s.repo.ExistsByFirstNameAndLastName(ctx, u.FirstName, u.LastName)
 	if err != nil {
 		return nil, err
 	}
 	if exists {
-		return nil, ErrUserAlreadyExists
+		return nil, NewCustomError(ErrUserAlreadyExists)
 	}
 	user, err := s.repo.Update(ctx, u)
 	if err != nil {
