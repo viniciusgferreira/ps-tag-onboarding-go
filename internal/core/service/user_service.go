@@ -14,22 +14,22 @@ type UserService struct {
 	repo ports.UserRepository
 }
 
-type InvalidUserResponse struct {
-	Name    string   `json:"error"`
+type ValidationError struct {
+	Message string   `json:"error"`
 	Details []string `json:"details,omitempty"`
 }
 
-func (r InvalidUserResponse) Error() string {
-	return r.Name
+func (r ValidationError) Error() string {
+	return r.Message
 }
 
-func (r InvalidUserResponse) New(validationErrors []error) InvalidUserResponse {
+func NewValidationError(validationErrors []error) ValidationError {
 	details := make([]string, len(validationErrors))
 	for i, err := range validationErrors {
 		details[i] = err.Error()
 	}
-	return InvalidUserResponse{
-		Name:    "User did not pass validation",
+	return ValidationError{
+		Message: "User did not pass validation",
 		Details: details,
 	}
 }
@@ -64,8 +64,7 @@ func (s *UserService) Find(ctx *gin.Context, id string) (*models.User, error) {
 func (s *UserService) Save(ctx *gin.Context, u models.User) (*models.User, error) {
 	validationErrors := s.Validate(u)
 	if validationErrors != nil {
-		errorsReponse := InvalidUserResponse{}
-		return nil, errorsReponse.New(validationErrors)
+		return nil, NewValidationError(validationErrors)
 	}
 	exists, err := s.repo.ExistsByFirstNameAndLastName(ctx, u.FirstName, u.LastName)
 	if err != nil {
@@ -88,8 +87,7 @@ func (s *UserService) Update(ctx *gin.Context, u models.User) (*models.User, err
 	}
 	validationErrors := s.Validate(u)
 	if validationErrors != nil {
-		errorsReponse := InvalidUserResponse{}
-		return nil, errorsReponse.New(validationErrors)
+		return nil, NewValidationError(validationErrors)
 	}
 	_, err = s.repo.FindById(ctx, u.ID)
 	if err != nil {

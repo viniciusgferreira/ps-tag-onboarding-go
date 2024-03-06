@@ -98,14 +98,14 @@ func New(s ports.UserService) *UserHandler {
 
 func checkErr(ctx *gin.Context, err error) {
 	switch {
-	case errors.As(err, &service.InvalidUserResponse{}):
+	case errors.As(err, &service.ValidationError{}):
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, err)
 	case errors.Is(err, service.ErrInvalidID):
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
 	case errors.Is(err, service.ErrUserNotFound):
 		ctx.AbortWithStatus(http.StatusNotFound)
 	case errors.Is(err, service.ErrUserAlreadyExists):
-		ctx.AbortWithStatusJSON(http.StatusConflict, err.Error())
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
 	default:
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, err.Error())
 	}
