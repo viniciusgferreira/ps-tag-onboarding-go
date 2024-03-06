@@ -10,17 +10,26 @@ import (
 	"regexp"
 )
 
+var (
+	ErrUserNotFound      = errors.New("User not found")
+	ErrUserAlreadyExists = errors.New("User with same first and last name already exists")
+	ErrInvalidAge        = errors.New("User must be at least 18 years old")
+	ErrInvalidName       = errors.New("User first and last name cannot be empty")
+	ErrInvalidEmail      = errors.New("Invalid email format")
+	ErrInvalidID         = errors.New("Invalid id (ObjectID)")
+)
+
 type UserService struct {
 	repo ports.UserRepository
+}
+
+func New(repo ports.UserRepository) *UserService {
+	return &UserService{repo: repo}
 }
 
 type ValidationError struct {
 	Message string   `json:"error"`
 	Details []string `json:"details,omitempty"`
-}
-
-func (r ValidationError) Error() string {
-	return r.Message
 }
 
 func NewValidationError(validationErrors []error) ValidationError {
@@ -34,18 +43,10 @@ func NewValidationError(validationErrors []error) ValidationError {
 	}
 }
 
-var (
-	ErrUserNotFound      = errors.New("User not found")
-	ErrUserAlreadyExists = errors.New("User with same first and last name already exists")
-	ErrInvalidAge        = errors.New("User must be at least 18 years old")
-	ErrInvalidName       = errors.New("User first and last name cannot be empty")
-	ErrInvalidEmail      = errors.New("Invalid email format")
-	ErrInvalidID         = errors.New("Invalid id (ObjectID)")
-)
-
-func New(repo ports.UserRepository) *UserService {
-	return &UserService{repo: repo}
+func (r ValidationError) Error() string {
+	return r.Message
 }
+
 func (s *UserService) Find(ctx *gin.Context, id string) (*models.User, error) {
 	err := s.validateID(id)
 	if err != nil {
