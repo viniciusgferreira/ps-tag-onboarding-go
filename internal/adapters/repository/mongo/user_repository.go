@@ -2,6 +2,7 @@ package mongo
 
 import (
 	"context"
+	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/adapters/config"
 	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/core/domain/models"
@@ -32,6 +33,9 @@ func (ur *UserMongoRepository) FindById(ctx *gin.Context, id string) (*models.Us
 	var user *models.User
 	err = ur.db.Collection(userCollection).FindOne(ctx, filter).Decode(&user)
 	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, nil
+		}
 		return nil, err
 	}
 	return user, nil
@@ -57,6 +61,9 @@ func (ur *UserMongoRepository) Update(ctx *gin.Context, u models.User) (*models.
 	update := bson.D{{"$set", bson.D{{"firstName", u.FirstName}, {"lastName", u.LastName}, {"email", u.Email}, {"age", u.Age}}}}
 	err = ur.db.Collection(userCollection).FindOneAndUpdate(ctx, filter, update, &opts).Decode(updatedUser)
 	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, nil
+		}
 		return nil, err
 	}
 	return updatedUser, nil
