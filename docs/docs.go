@@ -35,7 +35,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.User"
+                            "$ref": "#/definitions/model.User"
                         }
                     }
                 ],
@@ -102,7 +102,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.User"
+                            "$ref": "#/definitions/model.User"
                         }
                     }
                 ],
@@ -110,13 +110,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid id",
                         "schema": {
-                            "$ref": "#/definitions/models.User"
+                            "$ref": "#/definitions/model.User"
                         }
                     },
                     "404": {
                         "description": "User not found",
                         "schema": {
-                            "$ref": "#/definitions/models.User"
+                            "$ref": "#/definitions/model.User"
                         }
                     },
                     "409": {
@@ -127,7 +127,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "models.User": {
+        "model.User": {
             "type": "object",
             "properties": {
                 "age": {

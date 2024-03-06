@@ -3,8 +3,8 @@ package service
 import (
 	"errors"
 	"github.com/gin-gonic/gin"
-	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/core/domain/models"
-	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/core/ports"
+	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/core/domain/model"
+	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/core/port"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"regexp"
 )
@@ -19,10 +19,10 @@ var (
 )
 
 type UserService struct {
-	repo ports.UserRepository
+	repo port.UserRepository
 }
 
-func New(repo ports.UserRepository) *UserService {
+func New(repo port.UserRepository) *UserService {
 	return &UserService{repo: repo}
 }
 
@@ -50,7 +50,7 @@ func (r CustomError) Error() string {
 	return r.Message
 }
 
-func (s *UserService) Find(ctx *gin.Context, id string) (*models.User, error) {
+func (s *UserService) Find(ctx *gin.Context, id string) (*model.User, error) {
 	err := s.validateID(id)
 	if err != nil {
 		return nil, err
@@ -65,7 +65,7 @@ func (s *UserService) Find(ctx *gin.Context, id string) (*models.User, error) {
 	return user, nil
 }
 
-func (s *UserService) Save(ctx *gin.Context, u models.User) (*models.User, error) {
+func (s *UserService) Save(ctx *gin.Context, u model.User) (*model.User, error) {
 	validationErrors := s.Validate(u)
 	if validationErrors != nil {
 		return nil, NewValidationError(validationErrors)
@@ -84,7 +84,7 @@ func (s *UserService) Save(ctx *gin.Context, u models.User) (*models.User, error
 	return user, nil
 }
 
-func (s *UserService) Update(ctx *gin.Context, u models.User) (*models.User, error) {
+func (s *UserService) Update(ctx *gin.Context, u model.User) (*model.User, error) {
 	err := s.validateID(u.ID)
 	if err != nil {
 		return nil, err
@@ -110,7 +110,7 @@ func (s *UserService) Update(ctx *gin.Context, u models.User) (*models.User, err
 	}
 	return user, nil
 }
-func (s *UserService) Validate(u models.User) []error {
+func (s *UserService) Validate(u model.User) []error {
 	var validationErrors []error
 	if err := s.validateName(u.FirstName, u.LastName); err != nil {
 		validationErrors = append(validationErrors, err)

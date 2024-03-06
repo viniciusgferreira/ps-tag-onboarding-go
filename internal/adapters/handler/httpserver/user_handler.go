@@ -3,14 +3,14 @@ package httpserver
 import (
 	"errors"
 	"github.com/gin-gonic/gin"
-	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/core/domain/models"
-	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/core/ports"
+	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/core/domain/model"
+	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/core/port"
 	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/core/service"
 	"net/http"
 )
 
 type UserHandler struct {
-	service ports.UserService
+	service port.UserService
 }
 
 func (h *UserHandler) Routes() []Route {
@@ -27,7 +27,7 @@ func (h *UserHandler) Routes() []Route {
 // @Tags users
 // @Produce json
 // @Param id path string true "id"
-// @Sucess 201 {object} models.User
+// @Sucess 201 {object} model.User
 // @Failure 404
 // @Failure 400
 // @Router /users/{id} [get]
@@ -46,13 +46,13 @@ func (h *UserHandler) GetByID(ctx *gin.Context) {
 // @Tags users
 // @Accept json
 // @Produce json
-// @Param User body models.User true "User input"
+// @Param User body model.User true "User input"
 // @Sucess 201 {object} modes.User
 // @Failure 409
 // @Failure 400
 // @Router /users [post]
 func (h *UserHandler) Create(ctx *gin.Context) {
-	user := models.User{}
+	user := model.User{}
 	if err := ctx.ShouldBindJSON(&user); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
@@ -71,14 +71,14 @@ func (h *UserHandler) Create(ctx *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path int true "ID"
-// @Param User body models.User true "User input"
-// @Sucess 200 {object} models.User
-// @Failure 404 {object} models.User "User not found"
-// @Failure 400 {object} models.User "Invalid id"
+// @Param User body model.User true "User input"
+// @Sucess 200 {object} model.User
+// @Failure 404 {object} model.User "User not found"
+// @Failure 400 {object} model.User "Invalid id"
 // @Failure 409 "User already exists"
 // @Router /users/{id} [put]
 func (h *UserHandler) Update(ctx *gin.Context) {
-	u := models.User{}
+	u := model.User{}
 	u.ID = ctx.Param("id")
 	if err := ctx.BindJSON(&u); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
@@ -92,7 +92,7 @@ func (h *UserHandler) Update(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, updatedUser)
 }
 
-func New(s ports.UserService) *UserHandler {
+func New(s port.UserService) *UserHandler {
 	return &UserHandler{service: s}
 }
 
