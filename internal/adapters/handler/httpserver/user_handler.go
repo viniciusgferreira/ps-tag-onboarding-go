@@ -13,6 +13,10 @@ type UserHandler struct {
 	service port.UserService
 }
 
+func New(s port.UserService) *UserHandler {
+	return &UserHandler{service: s}
+}
+
 func (h *UserHandler) Routes() []Route {
 	return []Route{
 		{Method: http.MethodGet, Path: "/users/:id", Handler: h.GetByID},
@@ -90,10 +94,6 @@ func (h *UserHandler) Update(ctx *gin.Context) {
 		return
 	}
 	ctx.JSON(http.StatusOK, updatedUser)
-}
-
-func New(s port.UserService) *UserHandler {
-	return &UserHandler{service: s}
 }
 
 func checkErr(ctx *gin.Context, err error) {
