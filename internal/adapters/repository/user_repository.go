@@ -1,17 +1,13 @@
 package repository
 
 import (
-	"context"
 	"errors"
 	"github.com/gin-gonic/gin"
-	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/adapters/config"
 	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/core/domain/model"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.mongodb.org/mongo-driver/mongo/readpref"
-	"log/slog"
 )
 
 const userCollection = "users"
@@ -78,24 +74,4 @@ func (ur *UserMongoRepository) ExistsByFirstNameAndLastName(ctx *gin.Context, fi
 		return true, nil
 	}
 	return false, nil
-}
-
-func Connect(db config.DB) *mongo.Database {
-	slog.Info("Connecting to mongodb database")
-	opts := options.Client().ApplyURI(db.Uri).SetAuth(
-		options.Credential{
-			Username: db.User,
-			Password: db.Password,
-		})
-	conn, err := mongo.Connect(context.TODO(), opts)
-	if err != nil {
-		slog.Error("connecting to database", "error", err)
-		panic(err)
-	}
-	if err := conn.Ping(context.TODO(), readpref.Primary()); err != nil {
-		slog.Error("pinging database", "error", err)
-		panic(err)
-	}
-	slog.Info("Database Connected")
-	return conn.Database(db.Name)
 }

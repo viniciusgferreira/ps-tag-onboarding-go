@@ -4,6 +4,7 @@ import (
 	_ "github.com/viniciusgferreira/ps-tag-onboarding-go/docs"
 	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/adapters/config"
 	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/adapters/handler/httpserver"
+	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/adapters/mongodb"
 	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/adapters/repository"
 	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/core/service"
 	"log/slog"
@@ -17,7 +18,7 @@ import (
 func main() {
 	cfg := config.New()
 	slog.Info("Starting the application", "app", cfg.App.Name, "env", cfg.App.Env)
-	db := repository.Connect(*cfg.DB)
+	db := mongodb.Connect(*cfg.DB)
 	userRepo := repository.New(db)
 	userService := service.New(userRepo)
 	userHandler := httpserver.New(userService)
