@@ -18,7 +18,10 @@ import (
 func main() {
 	cfg := config.New()
 	slog.Info("Starting the application", "app", cfg.App.Name, "env", cfg.App.Env)
-	db := mongodb.Connect(*cfg.DB)
+	db, err := mongodb.Connect(*cfg.DB)
+	if err != nil {
+		panic(err)
+	}
 	userRepo := repository.New(db)
 	userService := service.New(userRepo)
 	userHandler := httpserver.New(userService)

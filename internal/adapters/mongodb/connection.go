@@ -9,7 +9,7 @@ import (
 	"log/slog"
 )
 
-func Connect(db config.DB) *mongo.Database {
+func Connect(db config.DB) (*mongo.Database, error) {
 	slog.Info("Connecting to mongodb database")
 	opts := options.Client().ApplyURI(db.Uri).SetAuth(
 		options.Credential{
@@ -19,12 +19,12 @@ func Connect(db config.DB) *mongo.Database {
 	conn, err := mongo.Connect(context.TODO(), opts)
 	if err != nil {
 		slog.Error("connecting to database", "error", err)
-		panic(err)
+		return nil, err
 	}
 	if err := conn.Ping(context.TODO(), readpref.Primary()); err != nil {
 		slog.Error("pinging database", "error", err)
-		panic(err)
+		return nil, err
 	}
 	slog.Info("Database Connected")
-	return conn.Database(db.Name)
+	return conn.Database(db.Name), nil
 }
