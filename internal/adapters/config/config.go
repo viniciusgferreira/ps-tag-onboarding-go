@@ -37,16 +37,16 @@ type (
 func New() Config {
 	filePath, err := filepath.Abs(os.Getenv("CONFIG_PATH"))
 	if err != nil {
-		slog.Error("File path:", err.Error())
+		slog.Error("File path:", "err", err.Error())
 	}
 	yamlFile, err := os.ReadFile(filePath)
 	if err != nil {
-		slog.Error("Yaml file:", err.Error())
+		slog.Error("Yaml file:", "err", err.Error())
 	}
 	var config Config
 	err = yaml.Unmarshal(yamlFile, &config)
 	if err != nil {
-		slog.Error("Unmarshal error:", err.Error())
+		slog.Error("Unmarshal error:", "err", err.Error())
 	}
 	return config
 }
