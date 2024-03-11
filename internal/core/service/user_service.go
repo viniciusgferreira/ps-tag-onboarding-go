@@ -15,7 +15,6 @@ var (
 	ErrInvalidAge        = errors.New("User must be at least 18 years old")
 	ErrInvalidName       = errors.New("User first and last name cannot be empty")
 	ErrInvalidEmail      = errors.New("Invalid email format")
-	ErrInvalidID         = errors.New("Invalid id (ObjectID)")
 )
 
 type UserService struct {
@@ -26,27 +25,23 @@ func New(repo port.UserRepository) *UserService {
 	return &UserService{repo: repo}
 }
 
-type CustomError struct {
-	Message string   `json:"error"`
-	Details []string `json:"details,omitempty"`
+type ValidationError struct {
+	Message string
+	Details []string
 }
 
-func NewCustomError(err error) CustomError {
-	return CustomError{Message: err.Error()}
-}
-
-func NewValidationError(validationErrors []error) CustomError {
+func NewValidationErrorWithDetails(validationErrors []error) ValidationError {
 	details := make([]string, len(validationErrors))
 	for i, err := range validationErrors {
 		details[i] = err.Error()
 	}
-	return CustomError{
+	return ValidationError{
 		Message: "User did not pass validation",
 		Details: details,
 	}
 }
 
-func (r CustomError) Error() string {
+func (r ValidationError) Error() string {
 	return r.Message
 }
 
@@ -56,11 +51,11 @@ func (s *UserService) Find(ctx *gin.Context, id string) (*model.User, error) {
 		return nil, err
 	}
 	user, err := s.repo.FindById(ctx, id)
-	if err != nil {
-		return nil, NewCustomError(err)
+	if err != nil || user == nil {
+		return nil, ErrUserNotFound
 	}
 	if user == nil {
-		return nil, NewCustomError(ErrUserNotFound)
+		return nil, ErrUserNotFound
 	}
 	return user, nil
 }
@@ -68,14 +63,11 @@ func (s *UserService) Find(ctx *gin.Context, id string) (*model.User, error) {
 func (s *UserService) Save(ctx *gin.Context, u model.User) (*model.User, error) {
 	validationErrors := s.Validate(u)
 	if validationErrors != nil {
-		return nil, NewValidationError(validationErrors)
+		return nil, NewValidationErrorWithDetails(validationErrors)
 	}
-	exists, err := s.repo.ExistsByFirstNameAndLastName(ctx, u.FirstName, u.LastName)
-	if err != nil {
-		return nil, err
-	}
+	exists := s.repo.ExistsByFirstNameAndLastName(ctx, u)
 	if exists {
-		return nil, NewValidationError([]error{ErrUserAlreadyExists})
+		return nil, ErrUserAlreadyExists
 	}
 	user, err := s.repo.Save(ctx, u)
 	if err != nil {
@@ -91,20 +83,17 @@ func (s *UserService) Update(ctx *gin.Context, u model.User) (*model.User, error
 	}
 	validationErrors := s.Validate(u)
 	if validationErrors != nil {
-		return nil, NewValidationError(validationErrors)
+		return nil, NewValidationErrorWithDetails(validationErrors)
 	}
-	_, err = s.repo.FindById(ctx, u.ID)
-	if err != nil {
-		return nil, NewCustomError(ErrUserNotFound)
+	user, _ := s.repo.FindById(ctx, u.ID)
+	if user == nil {
+		return nil, ErrUserNotFound
 	}
-	exists, err := s.repo.ExistsByFirstNameAndLastName(ctx, u.FirstName, u.LastName)
-	if err != nil {
-		return nil, err
-	}
+	exists := s.repo.ExistsByFirstNameAndLastName(ctx, u)
 	if exists {
-		return nil, NewCustomError(ErrUserAlreadyExists)
+		return nil, ErrUserAlreadyExists
 	}
-	user, err := s.repo.Update(ctx, u)
+	user, err = s.repo.Update(ctx, u)
 	if err != nil {
 		return nil, err
 	}
@@ -129,7 +118,7 @@ func (s *UserService) Validate(u model.User) []error {
 func (s *UserService) validateID(id string) error {
 	_, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		return ErrInvalidID
+		return ErrUserNotFound
 	}
 	return nil
 }
