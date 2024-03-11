@@ -6,8 +6,25 @@ import (
 	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/core/domain/model"
 	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/core/port"
 	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/core/service"
+	"log/slog"
 	"net/http"
 )
+
+type ErrorResponse struct {
+	Message string   `json:"error"`
+	Details []string `json:"details,omitempty"`
+}
+
+func NewValidationResponse(validationErrors []error) ErrorResponse {
+	details := make([]string, len(validationErrors))
+	for i, err := range validationErrors {
+		details[i] = err.Error()
+	}
+	return ErrorResponse{
+		Message: "User did not pass validation",
+		Details: details,
+	}
+}
 
 type UserHandler struct {
 	service port.UserService
@@ -58,7 +75,7 @@ func (h *UserHandler) GetByID(ctx *gin.Context) {
 func (h *UserHandler) Create(ctx *gin.Context) {
 	user := model.User{}
 	if err := ctx.ShouldBindJSON(&user); err != nil {
-		ctx.AbortWithStatus(http.StatusBadRequest)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Message: err.Error()})
 		return
 	}
 	savedUser, err := h.service.Save(ctx, user)
@@ -84,8 +101,8 @@ func (h *UserHandler) Create(ctx *gin.Context) {
 func (h *UserHandler) Update(ctx *gin.Context) {
 	u := model.User{}
 	u.ID = ctx.Param("id")
-	if err := ctx.BindJSON(&u); err != nil {
-		ctx.AbortWithStatus(http.StatusBadRequest)
+	if err := ctx.ShouldBindJSON(&u); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Message: err.Error()})
 		return
 	}
 	updatedUser, err := h.service.Update(ctx, u)
@@ -97,16 +114,16 @@ func (h *UserHandler) Update(ctx *gin.Context) {
 }
 
 func checkErr(ctx *gin.Context, err error) {
+	var validationErr service.ValidationError
 	switch {
-	case errors.As(err, &service.CustomError{}):
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, err)
-	case errors.Is(err, service.ErrInvalidID):
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
+	case errors.As(err, &validationErr):
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Message: validationErr.Message, Details: validationErr.Details})
 	case errors.Is(err, service.ErrUserNotFound):
-		ctx.AbortWithStatus(http.StatusNotFound)
+		ctx.AbortWithStatusJSON(http.StatusNotFound, ErrorResponse{Message: err.Error()})
 	case errors.Is(err, service.ErrUserAlreadyExists):
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Message: err.Error()})
 	default:
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, err.Error())
+		slog.Error("handler", "checkErr", err.Error())
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Message: "Internal Server Error"})
 	}
 }
