@@ -54,9 +54,6 @@ func (s *UserService) Find(ctx *gin.Context, id string) (*model.User, error) {
 	if err != nil || user == nil {
 		return nil, ErrUserNotFound
 	}
-	if user == nil {
-		return nil, ErrUserNotFound
-	}
 	return user, nil
 }
 
