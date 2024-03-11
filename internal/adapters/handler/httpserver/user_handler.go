@@ -15,17 +15,6 @@ type ErrorResponse struct {
 	Details []string `json:"details,omitempty"`
 }
 
-func NewValidationResponse(validationErrors []error) ErrorResponse {
-	details := make([]string, len(validationErrors))
-	for i, err := range validationErrors {
-		details[i] = err.Error()
-	}
-	return ErrorResponse{
-		Message: "User did not pass validation",
-		Details: details,
-	}
-}
-
 type UserHandler struct {
 	service port.UserService
 }
