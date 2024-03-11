@@ -6,6 +6,7 @@ import (
 	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/core/domain/model"
 	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/core/port"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"log/slog"
 	"regexp"
 )
 
@@ -46,18 +47,22 @@ func (r ValidationError) Error() string {
 }
 
 func (s *UserService) Find(ctx *gin.Context, id string) (*model.User, error) {
+	slog.Info("UserService.Find", "id", id)
 	err := s.validateID(id)
 	if err != nil {
 		return nil, err
 	}
 	user, err := s.repo.FindById(ctx, id)
 	if err != nil || user == nil {
+		slog.Warn("User not found")
 		return nil, ErrUserNotFound
 	}
+	slog.Info("UserService.Find completed sucessfully")
 	return user, nil
 }
 
 func (s *UserService) Save(ctx *gin.Context, u model.User) (*model.User, error) {
+	slog.Info("UserService.Save - Saving new user")
 	validationErrors := s.Validate(u)
 	if validationErrors != nil {
 		return nil, NewValidationErrorWithDetails(validationErrors)
@@ -68,12 +73,15 @@ func (s *UserService) Save(ctx *gin.Context, u model.User) (*model.User, error) 
 	}
 	user, err := s.repo.Save(ctx, u)
 	if err != nil {
+		slog.Error("UserService.Save failed")
 		return nil, err
 	}
+	slog.Info("UserService.Save completed sucessfully")
 	return user, nil
 }
 
 func (s *UserService) Update(ctx *gin.Context, u model.User) (*model.User, error) {
+	slog.Info("UserService.Update", "Updating user", u.ID)
 	err := s.validateID(u.ID)
 	if err != nil {
 		return nil, err
@@ -92,29 +100,37 @@ func (s *UserService) Update(ctx *gin.Context, u model.User) (*model.User, error
 	}
 	user, err = s.repo.Update(ctx, u)
 	if err != nil {
+		slog.Error("UserService.Update failed")
 		return nil, err
 	}
+	slog.Info("UserService.Update completed sucessfully")
 	return user, nil
 }
 func (s *UserService) Validate(u model.User) []error {
 	var validationErrors []error
 	if err := s.validateName(u.FirstName, u.LastName); err != nil {
+		slog.Warn("UserService.Validate", "name", "Invalid name")
 		validationErrors = append(validationErrors, err)
 	}
 	if err := s.validateEmail(u.Email); err != nil {
+		slog.Warn("UserService.Validate", "email", "Invalid email")
 		validationErrors = append(validationErrors, err)
 	}
 	if err := s.validateAge(u.Age); err != nil {
+		slog.Warn("UserService.Validate", "age", "Invalid age")
 		validationErrors = append(validationErrors, err)
 	}
 	if len(validationErrors) > 0 {
+		slog.Error("UserService.Validate", "Validation errors", len(validationErrors))
 		return validationErrors
 	}
+	slog.Info("User is valid")
 	return nil
 }
 func (s *UserService) validateID(id string) error {
 	_, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
+		slog.Error("Mongodb", "ObjectID conversion", err.Error())
 		return ErrUserNotFound
 	}
 	return nil

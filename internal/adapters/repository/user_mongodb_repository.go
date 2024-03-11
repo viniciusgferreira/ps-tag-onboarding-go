@@ -24,7 +24,8 @@ func New(db *mongo.Database) *UserMongoRepository {
 func (ur *UserMongoRepository) FindById(ctx *gin.Context, id string) (*model.User, error) {
 	oid, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		return nil, err
+		slog.Error("MongoDB", "ObjectID conversion", err.Error())
+		return nil, nil
 	}
 	filter := bson.D{{"_id", oid}}
 	var user *model.User
@@ -51,6 +52,7 @@ func (ur *UserMongoRepository) Save(ctx *gin.Context, u model.User) (*model.User
 func (ur *UserMongoRepository) Update(ctx *gin.Context, u model.User) (*model.User, error) {
 	oid, err := primitive.ObjectIDFromHex(u.ID)
 	if err != nil {
+		slog.Error("MongoDB", "ObjectID conversion", err.Error())
 		return nil, err
 	}
 	updatedUser := &model.User{}
@@ -74,7 +76,7 @@ func (ur *UserMongoRepository) ExistsByFirstNameAndLastName(ctx *gin.Context, u 
 	if len(u.ID) != 0 {
 		oid, err = primitive.ObjectIDFromHex(u.ID)
 		if err != nil {
-			slog.Error("Mongodb", "ObjectID conversion", err.Error())
+			slog.Error("MongoDB", "ObjectID conversion", err.Error())
 			return false
 		}
 	}
@@ -85,10 +87,11 @@ func (ur *UserMongoRepository) ExistsByFirstNameAndLastName(ctx *gin.Context, u 
 	}
 	count, err := ur.db.Collection(userCollection).CountDocuments(ctx, filter)
 	if err != nil {
-		slog.Error("Mongodb", "count", err.Error())
+		slog.Error("MongoDB", "count", err.Error())
 		return false
 	}
 	if count > 0 {
+		slog.Warn("MongoDB", "User with first and last name already exists", u.FirstName+" "+u.LastName)
 		return true
 	}
 	return false
