@@ -8,6 +8,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"log/slog"
 )
 
 const userCollection = "users"
@@ -32,6 +33,7 @@ func (ur *UserMongoRepository) FindById(ctx *gin.Context, id string) (*model.Use
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, nil
 		}
+		slog.Error("MongoDB", "Find One User", err.Error())
 		return nil, err
 	}
 	return user, nil
@@ -39,6 +41,7 @@ func (ur *UserMongoRepository) FindById(ctx *gin.Context, id string) (*model.Use
 func (ur *UserMongoRepository) Save(ctx *gin.Context, u model.User) (*model.User, error) {
 	result, err := ur.db.Collection(userCollection).InsertOne(ctx, u)
 	if err != nil {
+		slog.Error("MongoDB", "Insert User", err.Error())
 		return nil, err
 	}
 	u.ID = result.InsertedID.(primitive.ObjectID).Hex()
@@ -60,18 +63,33 @@ func (ur *UserMongoRepository) Update(ctx *gin.Context, u model.User) (*model.Us
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, nil
 		}
+		slog.Error("MongoDB", "Update User", err.Error())
 		return nil, err
 	}
 	return updatedUser, nil
 }
-func (ur *UserMongoRepository) ExistsByFirstNameAndLastName(ctx *gin.Context, firstName, lastName string) (bool, error) {
-	filter := bson.D{{"firstName", firstName}, {"lastName", lastName}}
+func (ur *UserMongoRepository) ExistsByFirstNameAndLastName(ctx *gin.Context, u model.User) bool {
+	var oid primitive.ObjectID
+	var err error
+	if len(u.ID) != 0 {
+		oid, err = primitive.ObjectIDFromHex(u.ID)
+		if err != nil {
+			slog.Error("Mongodb", "ObjectID conversion", err.Error())
+			return false
+		}
+	}
+	filter := bson.D{
+		{"firstName", u.FirstName},
+		{"lastName", u.LastName},
+		{"_id", bson.D{{"$ne", oid}}},
+	}
 	count, err := ur.db.Collection(userCollection).CountDocuments(ctx, filter)
 	if err != nil {
-		return false, err
+		slog.Error("Mongodb", "count", err.Error())
+		return false
 	}
 	if count > 0 {
-		return true, nil
+		return true
 	}
-	return false, nil
+	return false
 }
