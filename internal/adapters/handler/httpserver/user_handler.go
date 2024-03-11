@@ -4,7 +4,6 @@ import (
 	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/core/domain/model"
-	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/core/port"
 	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/core/service"
 	"log/slog"
 	"net/http"
@@ -16,10 +15,10 @@ type ErrorResponse struct {
 }
 
 type UserHandler struct {
-	service port.UserService
+	service service.UserService
 }
 
-func New(s port.UserService) *UserHandler {
+func New(s service.UserService) *UserHandler {
 	return &UserHandler{service: s}
 }
 

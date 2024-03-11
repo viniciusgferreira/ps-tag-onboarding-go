@@ -4,7 +4,6 @@ import (
 	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/core/domain/model"
-	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/core/port"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"log/slog"
 	"regexp"
@@ -18,11 +17,17 @@ var (
 	ErrInvalidEmail      = errors.New("Invalid email format")
 )
 
+type UserRepository interface {
+	FindById(ctx *gin.Context, id string) (*model.User, error)
+	Save(ctx *gin.Context, u model.User) (*model.User, error)
+	Update(ctx *gin.Context, u model.User) (*model.User, error)
+	ExistsByFirstNameAndLastName(ctx *gin.Context, u model.User) bool
+}
 type UserService struct {
-	repo port.UserRepository
+	repo UserRepository
 }
 
-func New(repo port.UserRepository) *UserService {
+func New(repo UserRepository) *UserService {
 	return &UserService{repo: repo}
 }
 

@@ -24,7 +24,7 @@ func main() {
 	}
 	userRepo := repository.New(db)
 	userService := service.New(userRepo)
-	userHandler := httpserver.New(userService)
+	userHandler := httpserver.New(*userService)
 	router := httpserver.NewRouter(*userHandler, cfg.HTTP.GinMode)
 
 	router.StartServer(cfg.HTTP.URL, cfg.HTTP.Port)
