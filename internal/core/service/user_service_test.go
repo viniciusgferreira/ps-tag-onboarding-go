@@ -3,7 +3,6 @@ package service
 import (
 	"errors"
 	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/core/domain/model"
-	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/test"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"reflect"
 	"testing"
@@ -18,7 +17,7 @@ func TestUserService(t *testing.T) {
 		Age:       21,
 	}
 	t.Run("Save user", func(t *testing.T) {
-		mockRepo := &test.MockUserRepository{}
+		mockRepo := &MockUserRepository{}
 		service := New(mockRepo)
 
 		result, err := service.Save(nil, user)
@@ -35,7 +34,7 @@ func TestUserService(t *testing.T) {
 
 	t.Run("Find user", func(t *testing.T) {
 		Users := []model.User{user}
-		mockRepo := &test.MockUserRepository{Users: Users}
+		mockRepo := &MockUserRepository{Users: Users}
 		service := New(mockRepo)
 
 		result, err := service.Find(nil, user.ID)
@@ -55,7 +54,7 @@ func TestUserService(t *testing.T) {
 			Email:     "new@doe.com",
 			Age:       23,
 		}
-		mockRepo := &test.MockUserRepository{Users: Users}
+		mockRepo := &MockUserRepository{Users: Users}
 		service := &UserService{repo: mockRepo}
 
 		result, err := service.Update(nil, updatedUser)
@@ -79,7 +78,7 @@ func TestUserValidation(t *testing.T) {
 			Email:     "john@doe.com",
 			Age:       21,
 		}
-		mockRepo := &test.MockUserRepository{}
+		mockRepo := &MockUserRepository{}
 		service := New(mockRepo)
 
 		err := service.Validate(user)
@@ -89,7 +88,7 @@ func TestUserValidation(t *testing.T) {
 	})
 	t.Run("Should return error with invalid user", func(t *testing.T) {
 		invalidUser := model.User{}
-		mockRepo := &test.MockUserRepository{}
+		mockRepo := &MockUserRepository{}
 		service := New(mockRepo)
 
 		err := service.Validate(invalidUser)
@@ -105,7 +104,7 @@ func TestUserValidation(t *testing.T) {
 			Email:     "john@doe.com",
 			Age:       17,
 		}
-		mockRepo := &test.MockUserRepository{}
+		mockRepo := &MockUserRepository{}
 		service := New(mockRepo)
 
 		errs := service.Validate(userWithInvalidAge)
@@ -121,7 +120,7 @@ func TestUserValidation(t *testing.T) {
 			Email:     "johndoe2.com",
 			Age:       20,
 		}
-		mockRepo := &test.MockUserRepository{}
+		mockRepo := &MockUserRepository{}
 		service := New(mockRepo)
 
 		errs := service.Validate(userWithInvalidEmail)
