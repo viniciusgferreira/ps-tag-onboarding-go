@@ -70,14 +70,14 @@ func (ur *UserMongoRepository) Update(ctx *gin.Context, u model.User) (*model.Us
 	}
 	return updatedUser, nil
 }
-func (ur *UserMongoRepository) ExistsByFirstNameAndLastName(ctx *gin.Context, u model.User) bool {
+func (ur *UserMongoRepository) ExistsByFirstNameAndLastName(ctx *gin.Context, u model.User) (bool, error) {
 	var oid primitive.ObjectID
 	var err error
 	if len(u.ID) != 0 {
 		oid, err = primitive.ObjectIDFromHex(u.ID)
 		if err != nil {
 			slog.Error("MongoDB", "ObjectID conversion", err.Error())
-			return false
+			return false, err
 		}
 	}
 	filter := bson.D{
@@ -88,11 +88,11 @@ func (ur *UserMongoRepository) ExistsByFirstNameAndLastName(ctx *gin.Context, u 
 	count, err := ur.db.Collection(userCollection).CountDocuments(ctx, filter)
 	if err != nil {
 		slog.Error("MongoDB", "count", err.Error())
-		return false
+		return false, err
 	}
 	if count > 0 {
 		slog.Warn("MongoDB", "User with first and last name already exists", u.FirstName+" "+u.LastName)
-		return true
+		return true, nil
 	}
-	return false
+	return false, nil
 }

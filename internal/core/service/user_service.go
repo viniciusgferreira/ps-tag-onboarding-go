@@ -21,7 +21,7 @@ type UserRepository interface {
 	FindById(ctx *gin.Context, id string) (*model.User, error)
 	Save(ctx *gin.Context, u model.User) (*model.User, error)
 	Update(ctx *gin.Context, u model.User) (*model.User, error)
-	ExistsByFirstNameAndLastName(ctx *gin.Context, u model.User) bool
+	ExistsByFirstNameAndLastName(ctx *gin.Context, u model.User) (bool, error)
 }
 type UserService struct {
 	repo UserRepository
@@ -72,7 +72,10 @@ func (s *UserService) Save(ctx *gin.Context, u model.User) (*model.User, error) 
 	if validationErrors != nil {
 		return nil, NewValidationErrorWithDetails(validationErrors)
 	}
-	exists := s.repo.ExistsByFirstNameAndLastName(ctx, u)
+	exists, err := s.repo.ExistsByFirstNameAndLastName(ctx, u)
+	if err != nil {
+		return nil, err
+	}
 	if exists {
 		return nil, ErrUserAlreadyExists
 	}
@@ -99,7 +102,10 @@ func (s *UserService) Update(ctx *gin.Context, u model.User) (*model.User, error
 	if user == nil {
 		return nil, ErrUserNotFound
 	}
-	exists := s.repo.ExistsByFirstNameAndLastName(ctx, u)
+	exists, err := s.repo.ExistsByFirstNameAndLastName(ctx, u)
+	if err != nil {
+		return nil, err
+	}
 	if exists {
 		return nil, ErrUserAlreadyExists
 	}
