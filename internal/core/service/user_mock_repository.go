@@ -37,6 +37,6 @@ func (m *MockUserRepository) Update(ctx *gin.Context, updatedUser model.User) (*
 	return &m.Users[index], nil
 }
 
-func (m *MockUserRepository) ExistsByFirstNameAndLastName(ctx *gin.Context, u model.User) bool {
-	return false
+func (m *MockUserRepository) ExistsByFirstNameAndLastName(ctx *gin.Context, u model.User) (bool, error) {
+	return false, nil
 }
