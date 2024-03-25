@@ -8,54 +8,84 @@ import (
 	"testing"
 )
 
-func TestUserService(t *testing.T) {
-	user := model.User{
-		ID:        primitive.NewObjectID().Hex(),
-		FirstName: "John",
-		LastName:  "Doe",
-		Email:     "john@doe.com",
-		Age:       21,
-	}
-	t.Run("Save user", func(t *testing.T) {
+var validUser = model.User{
+	ID:        primitive.NewObjectID().Hex(),
+	FirstName: "John",
+	LastName:  "Doe",
+	Email:     "john@doe.com",
+	Age:       21,
+}
+
+func TestSaveUser(t *testing.T) {
+	t.Run("Save valid user", func(t *testing.T) {
 		mockRepo := &MockUserRepository{}
 		service := NewUserService(mockRepo)
 
-		result, err := service.Save(nil, user)
+		result, err := service.Save(nil, validUser)
 		if err != nil {
 			t.Errorf("error saving user: %v", err)
 		}
-		if !reflect.DeepEqual(result, &user) {
-			t.Errorf("expected: %v, result: %v", user, result)
+		if !reflect.DeepEqual(result, &validUser) {
+			t.Errorf("expected: %v, result: %v", validUser, result)
 		}
 		if len(mockRepo.Users) != 1 || !reflect.DeepEqual(&mockRepo.Users[0], result) {
 			t.Errorf("user not saved properly in mock repository")
 		}
 	})
+	t.Run("Should return error with empty user", func(t *testing.T) {
+		emptyUser := model.User{}
+		mockRepo := &MockUserRepository{}
+		service := NewUserService(mockRepo)
 
+		result, err := service.Save(nil, emptyUser)
+		if err == nil || result != nil {
+			t.Errorf("error saving user: %v", err)
+		}
+		if len(mockRepo.Users) != 0 {
+			t.Errorf("empty user should not be saved in mock repository")
+		}
+	})
+}
+func TestFindUser(t *testing.T) {
 	t.Run("Find user", func(t *testing.T) {
-		Users := []model.User{user}
+		Users := []model.User{validUser}
 		mockRepo := &MockUserRepository{Users: Users}
 		service := NewUserService(mockRepo)
 
-		result, err := service.Find(nil, user.ID)
+		result, err := service.Find(nil, validUser.ID)
 		if err != nil {
 			t.Errorf("error finding user: %v", err)
 		}
-		if !reflect.DeepEqual(result, &user) {
-			t.Errorf("expected: %v, result: %v", user, result)
+		if !reflect.DeepEqual(result, &validUser) {
+			t.Errorf("expected: %v, result: %v", validUser, result)
 		}
 	})
-	t.Run("Update user", func(t *testing.T) {
-		Users := []model.User{user}
+	t.Run("Should return error with user not found", func(t *testing.T) {
+		mockRepo := &MockUserRepository{}
+		service := NewUserService(mockRepo)
+
+		result, err := service.Find(nil, validUser.ID)
+		if result != nil {
+			t.Errorf("should return userNotFound")
+		}
+		if err == nil {
+			t.Errorf("expected: %v, result: %v", ErrUserNotFound, err)
+		}
+	})
+}
+func TestUpdateUser(t *testing.T) {
+	t.Run("Update valid user", func(t *testing.T) {
+		Users := []model.User{validUser}
+		mockRepo := &MockUserRepository{Users: Users}
+		service := &UserService{repo: mockRepo}
+
 		updatedUser := model.User{
-			ID:        user.ID,
+			ID:        validUser.ID,
 			FirstName: "Doe",
 			LastName:  "NewUserService",
 			Email:     "new@doe.com",
 			Age:       23,
 		}
-		mockRepo := &MockUserRepository{Users: Users}
-		service := &UserService{repo: mockRepo}
 
 		result, err := service.Update(nil, updatedUser)
 		if err != nil {
@@ -68,20 +98,31 @@ func TestUserService(t *testing.T) {
 			t.Errorf("user not updated properly in mock repository")
 		}
 	})
-}
-func TestUserValidation(t *testing.T) {
-	t.Run("Validate user", func(t *testing.T) {
-		user := model.User{
+	t.Run("return error with existing user first and last name", func(t *testing.T) {
+		Users := []model.User{validUser}
+		mockRepo := &MockUserRepository{Users: Users}
+		service := &UserService{repo: mockRepo}
+
+		updatedUser := model.User{
 			ID:        primitive.NewObjectID().Hex(),
 			FirstName: "John",
 			LastName:  "Doe",
-			Email:     "john@doe.com",
-			Age:       21,
+			Email:     "new@doe.com",
+			Age:       23,
 		}
+
+		result, err := service.Update(nil, updatedUser)
+		if err == nil || result != nil {
+			t.Errorf("update should fail: %v", err)
+		}
+	})
+}
+func TestUserValidation(t *testing.T) {
+	t.Run("Validate user", func(t *testing.T) {
 		mockRepo := &MockUserRepository{}
 		service := NewUserService(mockRepo)
 
-		err := service.Validate(user)
+		err := service.Validate(validUser)
 		if err != nil {
 			t.Errorf("error validating user: %v", err)
 		}
