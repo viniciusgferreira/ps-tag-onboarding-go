@@ -1,0 +1,13 @@
+app:
+  name: tag-onboarding-api
+  environment: prod
+mongo:
+  dbName: onboardingdb
+  username: user
+  password: pass
+  port: 27017
+  host: mongo
+  uri: mongodb://user:pass@mongo:27017
+server:
+  port: 8080
+  ginMode: release
