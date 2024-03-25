@@ -53,7 +53,10 @@ func (r ValidationError) Error() string {
 func (s *UserService) Find(ctx *gin.Context, id string) (*model.User, error) {
 	slog.Info("UserService.Find", "id", id)
 	user, err := s.repo.FindById(ctx, id)
-	if err != nil || user == nil {
+	if err != nil {
+		return nil, err
+	}
+	if user == nil {
 		slog.Warn("User not found")
 		return nil, ErrUserNotFound
 	}
