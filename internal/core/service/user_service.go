@@ -92,7 +92,10 @@ func (s *UserService) Update(ctx *gin.Context, u model.User) (*model.User, error
 	if validationErrors != nil {
 		return nil, NewValidationErrorWithDetails(validationErrors)
 	}
-	user, _ := s.repo.FindById(ctx, u.ID)
+	user, err := s.repo.FindById(ctx, u.ID)
+	if err != nil {
+		return nil, err
+	}
 	if user == nil {
 		return nil, ErrUserNotFound
 	}
