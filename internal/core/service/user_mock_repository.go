@@ -38,5 +38,10 @@ func (m *MockUserRepository) Update(ctx *gin.Context, updatedUser model.User) (*
 }
 
 func (m *MockUserRepository) ExistsByFirstNameAndLastName(ctx *gin.Context, u model.User) (bool, error) {
+	for _, user := range m.Users {
+		if user.ID != u.ID && user.FirstName == u.FirstName && user.LastName == u.LastName {
+			return true, nil
+		}
+	}
 	return false, nil
 }

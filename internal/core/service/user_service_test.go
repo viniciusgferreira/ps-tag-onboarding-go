@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/core/domain/model"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"log"
 	"reflect"
 	"testing"
 )
@@ -43,6 +44,28 @@ func TestSaveUser(t *testing.T) {
 		}
 		if len(mockRepo.Users) != 0 {
 			t.Errorf("empty user should not be saved in mock repository")
+		}
+	})
+	t.Run("Should return error for user that already exists", func(t *testing.T) {
+		Users := []model.User{validUser}
+		mockRepo := &MockUserRepository{Users: Users}
+		service := NewUserService(mockRepo)
+
+		newUser := model.User{
+			ID:        primitive.NewObjectID().Hex(),
+			FirstName: "John",
+			LastName:  "Doe",
+			Email:     "doe@j.com",
+			Age:       20,
+		}
+
+		_, err := service.Save(nil, newUser)
+		if err == nil {
+			t.Errorf("should return error saving user: %v", err)
+		}
+		if len(mockRepo.Users) != 1 {
+			log.Println(mockRepo.Users)
+			t.Errorf("duplicate user should not be saved in mock repository")
 		}
 	})
 }
@@ -96,6 +119,35 @@ func TestUpdateUser(t *testing.T) {
 		}
 		if len(mockRepo.Users) != 1 {
 			t.Errorf("user not updated properly in mock repository")
+		}
+	})
+	t.Run("return error on update with first and lastname that already exists", func(t *testing.T) {
+		updatedUser := model.User{
+			ID:        primitive.NewObjectID().Hex(),
+			FirstName: "John",
+			LastName:  "Doe Second",
+			Email:     "new@doe.com",
+			Age:       25,
+		}
+		Users := []model.User{validUser, updatedUser}
+		mockRepo := &MockUserRepository{Users: Users}
+		service := &UserService{repo: mockRepo}
+
+		changedValidUser := model.User{
+			ID:        validUser.ID,
+			FirstName: updatedUser.FirstName, // already exists
+			LastName:  updatedUser.LastName,  // already exists
+			Email:     "new@doe.com",
+			Age:       25,
+		}
+
+		_, err := service.Update(nil, changedValidUser)
+		if err == nil {
+			t.Errorf("should return error updating user: %v", err)
+		}
+		if len(mockRepo.Users) != 2 {
+			log.Println(mockRepo.Users)
+			t.Errorf("duplicate user should not be updated in mock repository")
 		}
 	})
 	t.Run("return error with existing user first and last name", func(t *testing.T) {
