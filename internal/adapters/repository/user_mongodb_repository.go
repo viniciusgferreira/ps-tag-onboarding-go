@@ -53,7 +53,7 @@ func (ur *UserMongoRepository) Update(ctx *gin.Context, u model.User) (*model.Us
 	oid, err := primitive.ObjectIDFromHex(u.ID)
 	if err != nil {
 		slog.Error("MongoDB", "ObjectID conversion", err.Error())
-		return nil, err
+		return nil, nil
 	}
 	updatedUser := &model.User{}
 	filter := bson.D{{"_id", oid}}
@@ -77,7 +77,7 @@ func (ur *UserMongoRepository) ExistsByFirstNameAndLastName(ctx *gin.Context, u 
 		oid, err = primitive.ObjectIDFromHex(u.ID)
 		if err != nil {
 			slog.Error("MongoDB", "ObjectID conversion", err.Error())
-			return false, err
+			return false, nil
 		}
 	}
 	filter := bson.D{
