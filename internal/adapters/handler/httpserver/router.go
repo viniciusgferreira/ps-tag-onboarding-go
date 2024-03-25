@@ -19,18 +19,18 @@ type Router struct {
 	*gin.Engine
 }
 
-func NewRouter(userHandler UserHandler, ginMode string) *Router {
+func NewRouter(ginMode string) *Router {
 	gin.SetMode(ginMode)
 	router := gin.Default()
-	routes := userHandler.Routes()
-	for _, r := range routes {
-		router.Handle(r.Method, r.Path, r.Handler)
-	}
+
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	return &Router{router}
 }
 
-func (r *Router) StartServer(url, port string) {
+func (r *Router) StartServer(url, port string, handlers []HttpHandlers) {
+	for _, handler := range handlers {
+		handler.SetupRoutes(r)
+	}
 	addr := fmt.Sprintf("%s:%s", url, port)
 	err := r.Run(addr)
 	if err != nil {

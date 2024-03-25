@@ -22,12 +22,10 @@ func NewUserHandler(s service.UserService) *UserHandler {
 	return &UserHandler{service: s}
 }
 
-func (h *UserHandler) Routes() []Route {
-	return []Route{
-		{Method: http.MethodGet, Path: "/users/:id", Handler: h.GetByID},
-		{Method: http.MethodPost, Path: "/users", Handler: h.Create},
-		{Method: http.MethodPut, Path: "/users/:id", Handler: h.Update},
-	}
+func (h *UserHandler) SetupRoutes(r *Router) {
+	r.Handle(http.MethodGet, "/users/:id", h.GetByID)
+	r.Handle(http.MethodPost, "/users", h.Create)
+	r.Handle(http.MethodPut, "/users/:id", h.Update)
 }
 
 // GetByID godoc
