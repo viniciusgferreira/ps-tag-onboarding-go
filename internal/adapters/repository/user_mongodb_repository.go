@@ -85,14 +85,15 @@ func (ur *UserMongoRepository) ExistsByFirstNameAndLastName(ctx *gin.Context, u 
 		{"lastName", u.LastName},
 		{"_id", bson.D{{"$ne", oid}}},
 	}
-	count, err := ur.db.Collection(userCollection).CountDocuments(ctx, filter)
+	var user *model.User
+	err = ur.db.Collection(userCollection).FindOne(ctx, filter).Decode(&user)
 	if err != nil {
-		slog.Error("MongoDB", "count", err.Error())
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			slog.Warn("MongoDB", "User with first and last name already exists", u.FirstName+" "+u.LastName)
+			return false, nil
+		}
+		slog.Error("MongoDB", "existsByFirstAndLastName", err.Error())
 		return false, err
-	}
-	if count > 0 {
-		slog.Warn("MongoDB", "User with first and last name already exists", u.FirstName+" "+u.LastName)
-		return true, nil
 	}
 	return false, nil
 }
