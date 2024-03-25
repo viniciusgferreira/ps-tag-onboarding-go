@@ -4,7 +4,6 @@ import (
 	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/core/domain/model"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"log/slog"
 	"regexp"
 )
@@ -53,10 +52,6 @@ func (r ValidationError) Error() string {
 
 func (s *UserService) Find(ctx *gin.Context, id string) (*model.User, error) {
 	slog.Info("UserService.Find", "id", id)
-	err := s.validateID(id)
-	if err != nil {
-		return nil, err
-	}
 	user, err := s.repo.FindById(ctx, id)
 	if err != nil || user == nil {
 		slog.Warn("User not found")
@@ -90,10 +85,6 @@ func (s *UserService) Save(ctx *gin.Context, u model.User) (*model.User, error) 
 
 func (s *UserService) Update(ctx *gin.Context, u model.User) (*model.User, error) {
 	slog.Info("UserService.Update", "Updating user", u.ID)
-	err := s.validateID(u.ID)
-	if err != nil {
-		return nil, err
-	}
 	validationErrors := s.Validate(u)
 	if validationErrors != nil {
 		return nil, NewValidationErrorWithDetails(validationErrors)
@@ -136,14 +127,6 @@ func (s *UserService) Validate(u model.User) []error {
 		return validationErrors
 	}
 	slog.Info("User is valid")
-	return nil
-}
-func (s *UserService) validateID(id string) error {
-	_, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		slog.Error("Mongodb", "ObjectID conversion", err.Error())
-		return ErrUserNotFound
-	}
 	return nil
 }
 
