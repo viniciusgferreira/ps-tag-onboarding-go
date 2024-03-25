@@ -1,12 +1,9 @@
 package httpserver
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-	"log/slog"
-	"os"
 )
 
 type Route struct {
@@ -27,14 +24,8 @@ func NewRouter(ginMode string) *Router {
 	return &Router{router}
 }
 
-func (r *Router) StartServer(url, port string, handlers []HttpHandlers) {
+func (r *Router) SetupRouter(handlers []HttpHandlers) {
 	for _, handler := range handlers {
 		handler.SetupRoutes(r)
-	}
-	addr := fmt.Sprintf("%s:%s", url, port)
-	err := r.Run(addr)
-	if err != nil {
-		slog.Error("Error starting the HTTP server", "error", err)
-		os.Exit(1)
 	}
 }
