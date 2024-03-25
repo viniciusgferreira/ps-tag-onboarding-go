@@ -18,7 +18,7 @@ func TestUserService(t *testing.T) {
 	}
 	t.Run("Save user", func(t *testing.T) {
 		mockRepo := &MockUserRepository{}
-		service := New(mockRepo)
+		service := NewUserService(mockRepo)
 
 		result, err := service.Save(nil, user)
 		if err != nil {
@@ -35,7 +35,7 @@ func TestUserService(t *testing.T) {
 	t.Run("Find user", func(t *testing.T) {
 		Users := []model.User{user}
 		mockRepo := &MockUserRepository{Users: Users}
-		service := New(mockRepo)
+		service := NewUserService(mockRepo)
 
 		result, err := service.Find(nil, user.ID)
 		if err != nil {
@@ -50,7 +50,7 @@ func TestUserService(t *testing.T) {
 		updatedUser := model.User{
 			ID:        user.ID,
 			FirstName: "Doe",
-			LastName:  "New",
+			LastName:  "NewUserService",
 			Email:     "new@doe.com",
 			Age:       23,
 		}
@@ -79,7 +79,7 @@ func TestUserValidation(t *testing.T) {
 			Age:       21,
 		}
 		mockRepo := &MockUserRepository{}
-		service := New(mockRepo)
+		service := NewUserService(mockRepo)
 
 		err := service.Validate(user)
 		if err != nil {
@@ -89,7 +89,7 @@ func TestUserValidation(t *testing.T) {
 	t.Run("Should return error with invalid user", func(t *testing.T) {
 		invalidUser := model.User{}
 		mockRepo := &MockUserRepository{}
-		service := New(mockRepo)
+		service := NewUserService(mockRepo)
 
 		err := service.Validate(invalidUser)
 		if err == nil {
@@ -105,7 +105,7 @@ func TestUserValidation(t *testing.T) {
 			Age:       17,
 		}
 		mockRepo := &MockUserRepository{}
-		service := New(mockRepo)
+		service := NewUserService(mockRepo)
 
 		errs := service.Validate(userWithInvalidAge)
 		if len(errs) == 0 || !errors.Is(errs[0], ErrInvalidAge) {
@@ -121,7 +121,7 @@ func TestUserValidation(t *testing.T) {
 			Age:       20,
 		}
 		mockRepo := &MockUserRepository{}
-		service := New(mockRepo)
+		service := NewUserService(mockRepo)
 
 		errs := service.Validate(userWithInvalidEmail)
 		if len(errs) != 1 {

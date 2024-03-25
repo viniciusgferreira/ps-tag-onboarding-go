@@ -22,9 +22,9 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	userRepo := repository.New(db)
-	userService := service.New(userRepo)
-	userHandler := httpserver.New(*userService)
+	userRepo := repository.NewUserRepo(db)
+	userService := service.NewUserService(userRepo)
+	userHandler := httpserver.NewUserHandler(*userService)
 	router := httpserver.NewRouter(*userHandler, cfg.HTTP.GinMode)
 
 	router.StartServer(cfg.HTTP.URL, cfg.HTTP.Port)
