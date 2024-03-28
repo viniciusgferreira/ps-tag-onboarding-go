@@ -13,7 +13,7 @@ var (
 	ErrUserAlreadyExists = errors.New("User with the same first and last name already exists")
 	ErrInvalidAge        = errors.New("User must be at least 18 years old")
 	ErrInvalidName       = errors.New("User first and last name cannot be empty")
-	ErrInvalidEmail      = errors.New("Invalid email format")
+	ErrInvalidEmail      = errors.New("Invalid email")
 )
 
 type UserRepository interface {
@@ -144,9 +144,6 @@ func (s *UserService) validateName(firstName, lastName string) error {
 }
 
 func (s *UserService) validateEmail(email string) error {
-	if len(email) <= 0 {
-		return errors.New("email cannot be empty")
-	}
 	emailRegex := regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
 	if !emailRegex.MatchString(email) {
 		return ErrInvalidEmail
