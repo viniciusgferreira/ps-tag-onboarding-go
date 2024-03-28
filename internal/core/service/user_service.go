@@ -60,7 +60,6 @@ func (s *UserService) Find(ctx *gin.Context, id string) (*model.User, error) {
 		slog.Warn("User not found")
 		return nil, ErrUserNotFound
 	}
-	slog.Info("UserService.Find completed sucessfully")
 	return user, nil
 }
 
@@ -68,6 +67,7 @@ func (s *UserService) Save(ctx *gin.Context, u model.User) (*model.User, error) 
 	slog.Info("UserService.Save - Saving new user")
 	validationErrors := s.Validate(u)
 	if validationErrors != nil {
+		slog.Error("ValidationError", "error", validationErrors)
 		return nil, NewValidationErrorWithDetails(validationErrors)
 	}
 	exists, err := s.repo.ExistsByFirstNameAndLastName(ctx, u)
@@ -79,10 +79,9 @@ func (s *UserService) Save(ctx *gin.Context, u model.User) (*model.User, error) 
 	}
 	user, err := s.repo.Save(ctx, u)
 	if err != nil {
-		slog.Error("UserService.Save failed")
+		slog.Error("UserService.Save", "error", err.Error())
 		return nil, err
 	}
-	slog.Info("UserService.Save completed sucessfully")
 	return user, nil
 }
 
@@ -90,6 +89,7 @@ func (s *UserService) Update(ctx *gin.Context, u model.User) (*model.User, error
 	slog.Info("UserService.Update", "Updating user", u.ID)
 	validationErrors := s.Validate(u)
 	if validationErrors != nil {
+		slog.Error("ValidationError", "error", validationErrors)
 		return nil, NewValidationErrorWithDetails(validationErrors)
 	}
 	user, err := s.repo.FindById(ctx, u.ID)
@@ -108,31 +108,25 @@ func (s *UserService) Update(ctx *gin.Context, u model.User) (*model.User, error
 	}
 	user, err = s.repo.Update(ctx, u)
 	if err != nil {
-		slog.Error("UserService.Update failed")
+		slog.Error("UserService.Update", "error", err.Error())
 		return nil, err
 	}
-	slog.Info("UserService.Update completed sucessfully")
 	return user, nil
 }
 func (s *UserService) Validate(u model.User) []error {
 	var validationErrors []error
 	if err := s.validateName(u.FirstName, u.LastName); err != nil {
-		slog.Warn("UserService.Validate", "name", "Invalid name")
 		validationErrors = append(validationErrors, err)
 	}
 	if err := s.validateEmail(u.Email); err != nil {
-		slog.Warn("UserService.Validate", "email", "Invalid email")
 		validationErrors = append(validationErrors, err)
 	}
 	if err := s.validateAge(u.Age); err != nil {
-		slog.Warn("UserService.Validate", "age", "Invalid age")
 		validationErrors = append(validationErrors, err)
 	}
 	if len(validationErrors) > 0 {
-		slog.Error("UserService.Validate", "Validation errors", len(validationErrors))
 		return validationErrors
 	}
-	slog.Info("User is valid")
 	return nil
 }
 
