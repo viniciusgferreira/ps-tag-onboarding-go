@@ -174,9 +174,9 @@ func TestUserValidation(t *testing.T) {
 		mockRepo := &MockUserRepository{}
 		service := NewUserService(mockRepo)
 
-		err := service.Validate(validUser)
-		if err != nil {
-			t.Errorf("error validating user: %v", err)
+		errs := service.Validate(validUser)
+		if errs != nil {
+			t.Errorf("error validating user: %v", errs)
 		}
 	})
 	t.Run("Should return error with invalid user", func(t *testing.T) {
@@ -184,9 +184,22 @@ func TestUserValidation(t *testing.T) {
 		mockRepo := &MockUserRepository{}
 		service := NewUserService(mockRepo)
 
-		err := service.Validate(invalidUser)
-		if err == nil || reflect.TypeOf(err).String() != "[]error" {
-			t.Errorf("validation should fail: %v", err)
+		errs := service.Validate(invalidUser)
+		if errs == nil || reflect.TypeOf(errs).String() != "[]error" {
+			t.Errorf("validation should fail: %v", errs)
+		}
+		errMap := map[error]bool{}
+		for _, err := range errs {
+			errMap[err] = true
+		}
+		if !errMap[ErrInvalidName] {
+			t.Errorf("expected error not encountered: %v\n", ErrInvalidName)
+		}
+		if !errMap[ErrInvalidEmail] {
+			t.Errorf("expected error not encountered: %v\n", ErrInvalidEmail)
+		}
+		if !errMap[ErrInvalidAge] {
+			t.Errorf("expected error not encountered: %v\n", ErrInvalidAge)
 		}
 	})
 	t.Run("Should return error with invalid age", func(t *testing.T) {
