@@ -9,11 +9,11 @@ import (
 )
 
 var (
-	ErrUserNotFound      = errors.New("User not found")
-	ErrUserAlreadyExists = errors.New("User with the same first and last name already exists")
-	ErrInvalidAge        = errors.New("User must be at least 18 years old")
-	ErrInvalidName       = errors.New("User first and last name cannot be empty")
-	ErrInvalidEmail      = errors.New("Invalid email")
+	ErrUserNotFound      = errors.New("user not found")
+	ErrUserAlreadyExists = errors.New("user with the same first and last name already exists")
+	ErrInvalidAge        = errors.New("user must be at least 18 years old")
+	ErrInvalidName       = errors.New("user first and last name cannot be empty")
+	ErrInvalidEmail      = errors.New("invalid email")
 )
 
 type UserRepository interface {
@@ -41,7 +41,7 @@ func NewValidationErrorWithDetails(validationErrors []error) ValidationError {
 		details[i] = err.Error()
 	}
 	return ValidationError{
-		Message: "User did not pass validation",
+		Message: "user did not pass validation",
 		Details: details,
 	}
 }
@@ -51,23 +51,21 @@ func (r ValidationError) Error() string {
 }
 
 func (s *UserService) Find(ctx *gin.Context, id string) (*model.User, error) {
-	slog.Info("UserService.Find", "id", id)
 	user, err := s.repo.FindById(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 	if user == nil {
-		slog.Warn("User not found")
+		slog.Warn("user not found")
 		return nil, ErrUserNotFound
 	}
 	return user, nil
 }
 
 func (s *UserService) Save(ctx *gin.Context, u model.User) (*model.User, error) {
-	slog.Info("UserService.Save - Saving new user")
 	validationErrors := s.Validate(u)
 	if validationErrors != nil {
-		slog.Error("ValidationError", "error", validationErrors)
+		slog.Error("validationError", "error", validationErrors)
 		return nil, NewValidationErrorWithDetails(validationErrors)
 	}
 	exists, err := s.repo.ExistsByFirstNameAndLastName(ctx, u)
@@ -79,17 +77,16 @@ func (s *UserService) Save(ctx *gin.Context, u model.User) (*model.User, error) 
 	}
 	user, err := s.repo.Save(ctx, u)
 	if err != nil {
-		slog.Error("UserService.Save", "error", err.Error())
+		slog.Error("userService.Save", "error", err.Error())
 		return nil, err
 	}
 	return user, nil
 }
 
 func (s *UserService) Update(ctx *gin.Context, u model.User) (*model.User, error) {
-	slog.Info("UserService.Update", "Updating user", u.ID)
 	validationErrors := s.Validate(u)
 	if validationErrors != nil {
-		slog.Error("ValidationError", "error", validationErrors)
+		slog.Error("validationError", "error", validationErrors)
 		return nil, NewValidationErrorWithDetails(validationErrors)
 	}
 	user, err := s.repo.FindById(ctx, u.ID)
@@ -108,7 +105,7 @@ func (s *UserService) Update(ctx *gin.Context, u model.User) (*model.User, error
 	}
 	user, err = s.repo.Update(ctx, u)
 	if err != nil {
-		slog.Error("UserService.Update", "error", err.Error())
+		slog.Error("userService.Update", "error", err.Error())
 		return nil, err
 	}
 	return user, nil
