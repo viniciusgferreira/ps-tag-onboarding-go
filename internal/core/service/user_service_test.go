@@ -170,7 +170,7 @@ func TestUpdateUser(t *testing.T) {
 	})
 }
 func TestUserValidation(t *testing.T) {
-	t.Run("Validate user", func(t *testing.T) {
+	t.Run("Validate user without error", func(t *testing.T) {
 		mockRepo := &MockUserRepository{}
 		service := NewUserService(mockRepo)
 
@@ -185,7 +185,7 @@ func TestUserValidation(t *testing.T) {
 		service := NewUserService(mockRepo)
 
 		err := service.Validate(invalidUser)
-		if err == nil {
+		if err == nil || reflect.TypeOf(err).String() != "[]error" {
 			t.Errorf("validation should fail: %v", err)
 		}
 	})
