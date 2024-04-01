@@ -35,13 +35,8 @@ func main() {
 
 	var serverHandlers []httpserver.HttpHandlers
 	serverHandlers = append(serverHandlers, httpserver.NewUserHandler(*userService))
-	router := httpserver.NewRouter(cfg.HTTP.GinMode)
-	router.SetupRouter(serverHandlers)
-
-	server := &http.Server{
-		Addr:    cfg.HTTP.URL + ":" + cfg.HTTP.Port,
-		Handler: router,
-	}
+	router := httpserver.NewRouter(cfg.HTTP.GinMode, serverHandlers)
+	server := httpserver.NewServer(cfg.HTTP, router)
 
 	var wg sync.WaitGroup
 	wg.Add(1)

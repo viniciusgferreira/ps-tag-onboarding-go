@@ -16,12 +16,15 @@ type Router struct {
 	*gin.Engine
 }
 
-func NewRouter(ginMode string) *Router {
+func NewRouter(ginMode string, handlers []HttpHandlers) *Router {
 	gin.SetMode(ginMode)
-	router := gin.Default()
-
+	router := &Router{gin.Default()}
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-	return &Router{router}
+
+	for _, handler := range handlers {
+		handler.SetupRoutes(router)
+	}
+	return router
 }
 
 func (r *Router) SetupRouter(handlers []HttpHandlers) {
