@@ -225,4 +225,58 @@ func TestUserValidation(t *testing.T) {
 			t.Errorf("expected err: %v, got: %v\n", ErrInvalidEmail, errs[0])
 		}
 	})
+	t.Run("Should return two errors with invalid age and email", func(t *testing.T) {
+		userWithInvalidEmailandAge := model.User{
+			ID:        primitive.NewObjectID().Hex(),
+			FirstName: "John",
+			LastName:  "Doe",
+			Email:     "johndoe2.com",
+			Age:       17,
+		}
+		mockRepo := &MockUserRepository{}
+		service := NewUserService(mockRepo)
+
+		errs := service.Validate(userWithInvalidEmailandAge)
+		if len(errs) != 2 {
+			t.Errorf("expected two errors, got %v errors\n", len(errs))
+			return
+		}
+		if !errors.Is(ErrInvalidEmail, errs[0]) {
+			t.Errorf("expected err: %v, got: %v\n", ErrInvalidEmail, errs[0])
+		}
+		if !errors.Is(ErrInvalidAge, errs[1]) {
+			t.Errorf("expected err: %v, got: %v\n", ErrInvalidAge, errs[1])
+		}
+	})
+	t.Run("Should return three errors with invalid name, age and email", func(t *testing.T) {
+		invalidUser := model.User{
+			ID:        primitive.NewObjectID().Hex(),
+			FirstName: "John",
+			LastName:  "",
+			Email:     "johndoe2.com",
+			Age:       17,
+		}
+		mockRepo := &MockUserRepository{}
+		service := NewUserService(mockRepo)
+
+		errs := service.Validate(invalidUser)
+		if len(errs) != 3 {
+			t.Errorf("expected three errors, got %v errors\n", len(errs))
+			return
+		}
+		errMap := map[error]bool{}
+		for _, err := range errs {
+			errMap[err] = true
+		}
+
+		if !errMap[ErrInvalidName] {
+			t.Errorf("expected error not encountered: %v\n", ErrInvalidName)
+		}
+		if !errMap[ErrInvalidEmail] {
+			t.Errorf("expected error not encountered: %v\n", ErrInvalidEmail)
+		}
+		if !errMap[ErrInvalidAge] {
+			t.Errorf("expected error not encountered: %v\n", ErrInvalidAge)
+		}
+	})
 }
