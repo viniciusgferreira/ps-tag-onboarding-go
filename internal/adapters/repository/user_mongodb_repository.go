@@ -24,7 +24,7 @@ func NewUserRepo(db *mongo.Database) *UserMongoRepository {
 func (ur *UserMongoRepository) FindById(ctx *gin.Context, id string) (*model.User, error) {
 	oid, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		slog.Error("MongoDB", "ObjectID conversion", err.Error())
+		slog.Error("converting user id from request to object id.", "error", err)
 		return nil, nil
 	}
 	filter := bson.D{{"_id", oid}}
@@ -34,7 +34,7 @@ func (ur *UserMongoRepository) FindById(ctx *gin.Context, id string) (*model.Use
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, nil
 		}
-		slog.Error("MongoDB", "Find One User", err.Error())
+		slog.Error("failed to decode FindOne result", "error", err)
 		return nil, err
 	}
 	return user, nil
@@ -42,7 +42,7 @@ func (ur *UserMongoRepository) FindById(ctx *gin.Context, id string) (*model.Use
 func (ur *UserMongoRepository) Save(ctx *gin.Context, u model.User) (*model.User, error) {
 	result, err := ur.db.Collection(userCollection).InsertOne(ctx, u)
 	if err != nil {
-		slog.Error("MongoDB", "Insert User", err.Error())
+		slog.Error("faile to insert user", "error", err)
 		return nil, err
 	}
 	u.ID = result.InsertedID.(primitive.ObjectID).Hex()
@@ -52,7 +52,7 @@ func (ur *UserMongoRepository) Save(ctx *gin.Context, u model.User) (*model.User
 func (ur *UserMongoRepository) Update(ctx *gin.Context, u model.User) (*model.User, error) {
 	oid, err := primitive.ObjectIDFromHex(u.ID)
 	if err != nil {
-		slog.Error("MongoDB", "ObjectID conversion", err.Error())
+		slog.Error("converting user id from request to object id.", "error", err)
 		return nil, nil
 	}
 	updatedUser := &model.User{}
@@ -65,7 +65,7 @@ func (ur *UserMongoRepository) Update(ctx *gin.Context, u model.User) (*model.Us
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, nil
 		}
-		slog.Error("MongoDB", "Update User", err.Error())
+		slog.Error("failed to decode FindOneAndUpdate result", "error", err)
 		return nil, err
 	}
 	return updatedUser, nil
@@ -76,7 +76,7 @@ func (ur *UserMongoRepository) ExistsByFirstNameAndLastName(ctx *gin.Context, u 
 	if len(u.ID) != 0 {
 		oid, err = primitive.ObjectIDFromHex(u.ID)
 		if err != nil {
-			slog.Error("MongoDB", "ObjectID conversion", err.Error())
+			slog.Error("converting user id from request to object id.", "error", err)
 			return false, nil
 		}
 	}
@@ -91,7 +91,7 @@ func (ur *UserMongoRepository) ExistsByFirstNameAndLastName(ctx *gin.Context, u 
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return false, nil
 		}
-		slog.Error("MongoDB", "existsByFirstAndLastName", err.Error())
+		slog.Error("failed to decode FindOne result", "error", err)
 		return false, err
 	}
 	if user != nil {
