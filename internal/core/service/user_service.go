@@ -65,7 +65,7 @@ func (s *UserService) Find(ctx *gin.Context, id string) (*model.User, error) {
 func (s *UserService) Save(ctx *gin.Context, u model.User) (*model.User, error) {
 	validationErrors := s.Validate(u)
 	if validationErrors != nil {
-		slog.Error("validationError", "error", validationErrors)
+		slog.Warn("validationError", "error", validationErrors)
 		return nil, NewValidationErrorWithDetails(validationErrors)
 	}
 	exists, err := s.repo.ExistsByFirstNameAndLastName(ctx, u)
@@ -86,7 +86,7 @@ func (s *UserService) Save(ctx *gin.Context, u model.User) (*model.User, error) 
 func (s *UserService) Update(ctx *gin.Context, u model.User) (*model.User, error) {
 	validationErrors := s.Validate(u)
 	if validationErrors != nil {
-		slog.Error("validationError", "error", validationErrors)
+		slog.Warn("validationError", "error", validationErrors)
 		return nil, NewValidationErrorWithDetails(validationErrors)
 	}
 	user, err := s.repo.FindById(ctx, u.ID)
