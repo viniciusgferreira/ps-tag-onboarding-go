@@ -6,12 +6,6 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-type Route struct {
-	Path    string
-	Method  string
-	Handler gin.HandlerFunc
-}
-
 type Router struct {
 	*gin.Engine
 }
