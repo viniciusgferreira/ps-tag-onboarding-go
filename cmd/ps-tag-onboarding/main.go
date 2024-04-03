@@ -34,8 +34,8 @@ func main() {
 
 	var serverHandlers []httpserver.HttpHandlers
 	serverHandlers = append(serverHandlers, httpserver.NewUserHandler(*userService))
-	router := httpserver.NewRouter(cfg.HTTP.GinMode, serverHandlers)
-	server := httpserver.NewServer(cfg.HTTP, router)
+
+	server := httpserver.NewServer(cfg.HTTP, serverHandlers)
 
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)

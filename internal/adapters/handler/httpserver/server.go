@@ -5,9 +5,9 @@ import (
 	"net/http"
 )
 
-func NewServer(cfg *config.HTTP, router *Router) *http.Server {
+func NewServer(cfg *config.HTTP, serverHandlers []HttpHandlers) *http.Server {
 	return &http.Server{
 		Addr:    cfg.URL + ":" + cfg.Port,
-		Handler: router,
+		Handler: NewRouter(cfg.GinMode, serverHandlers),
 	}
 }
