@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"github.com/stretchr/testify/assert"
 	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/core/domain/model"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"log"
@@ -188,19 +189,9 @@ func TestUserValidation(t *testing.T) {
 		if errs == nil || reflect.TypeOf(errs).String() != "[]error" {
 			t.Errorf("validation should fail: %v", errs)
 		}
-		errMap := map[error]bool{}
-		for _, err := range errs {
-			errMap[err] = true
-		}
-		if !errMap[ErrInvalidName] {
-			t.Errorf("expected error not encountered: %v\n", ErrInvalidName)
-		}
-		if !errMap[ErrInvalidEmail] {
-			t.Errorf("expected error not encountered: %v\n", ErrInvalidEmail)
-		}
-		if !errMap[ErrInvalidAge] {
-			t.Errorf("expected error not encountered: %v\n", ErrInvalidAge)
-		}
+		assert.Contains(t, errs, ErrInvalidName)
+		assert.Contains(t, errs, ErrInvalidEmail)
+		assert.Contains(t, errs, ErrInvalidAge)
 	})
 	t.Run("Should return error with invalid age", func(t *testing.T) {
 		userWithInvalidAge := model.User{
@@ -216,6 +207,7 @@ func TestUserValidation(t *testing.T) {
 		errs := service.Validate(userWithInvalidAge)
 		if len(errs) == 0 || !errors.Is(errs[0], ErrInvalidAge) {
 			t.Errorf("expected err: %v, got: %v\n", ErrInvalidAge, errs[0])
+			return
 		}
 	})
 	t.Run("Should return error with invalid email", func(t *testing.T) {
@@ -254,12 +246,8 @@ func TestUserValidation(t *testing.T) {
 			t.Errorf("expected two errors, got %v errors\n", len(errs))
 			return
 		}
-		if !errors.Is(ErrInvalidEmail, errs[0]) {
-			t.Errorf("expected err: %v, got: %v\n", ErrInvalidEmail, errs[0])
-		}
-		if !errors.Is(ErrInvalidAge, errs[1]) {
-			t.Errorf("expected err: %v, got: %v\n", ErrInvalidAge, errs[1])
-		}
+		assert.Contains(t, errs, ErrInvalidEmail)
+		assert.Contains(t, errs, ErrInvalidAge)
 	})
 	t.Run("Should return three errors with invalid name, age and email", func(t *testing.T) {
 		invalidUser := model.User{
@@ -277,19 +265,8 @@ func TestUserValidation(t *testing.T) {
 			t.Errorf("expected three errors, got %v errors\n", len(errs))
 			return
 		}
-		errMap := map[error]bool{}
-		for _, err := range errs {
-			errMap[err] = true
-		}
-
-		if !errMap[ErrInvalidName] {
-			t.Errorf("expected error not encountered: %v\n", ErrInvalidName)
-		}
-		if !errMap[ErrInvalidEmail] {
-			t.Errorf("expected error not encountered: %v\n", ErrInvalidEmail)
-		}
-		if !errMap[ErrInvalidAge] {
-			t.Errorf("expected error not encountered: %v\n", ErrInvalidAge)
-		}
+		assert.Contains(t, errs, ErrInvalidName)
+		assert.Contains(t, errs, ErrInvalidEmail)
+		assert.Contains(t, errs, ErrInvalidAge)
 	})
 }
