@@ -13,7 +13,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"sync"
 	"syscall"
 	"time"
 )
@@ -38,13 +37,10 @@ func main() {
 	router := httpserver.NewRouter(cfg.HTTP.GinMode, serverHandlers)
 	server := httpserver.NewServer(cfg.HTTP, router)
 
-	var wg sync.WaitGroup
-	wg.Add(1)
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
 
 	go func() {
-		defer wg.Done()
 		slog.Info("Server listening on " + server.Addr)
 		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			slog.Error("Failed starting server", "error", err)
@@ -54,7 +50,6 @@ func main() {
 
 	sig := <-sigCh
 	slog.Info("Shutting down...", "Received signal", sig)
-
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -62,7 +57,5 @@ func main() {
 		slog.Error("Failed to shutdown server", "error", err)
 		os.Exit(1)
 	}
-
-	wg.Wait()
 	slog.Info("Server shutdown complete.")
 }
