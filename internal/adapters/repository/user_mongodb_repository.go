@@ -42,7 +42,7 @@ func (ur *UserMongoRepository) FindById(ctx *gin.Context, id string) (*model.Use
 func (ur *UserMongoRepository) Save(ctx *gin.Context, u model.User) (*model.User, error) {
 	result, err := ur.db.Collection(userCollection).InsertOne(ctx, u)
 	if err != nil {
-		slog.Error("faile to insert user", "error", err)
+		slog.Error("failed to insert user", "error", err)
 		return nil, err
 	}
 	u.ID = result.InsertedID.(primitive.ObjectID).Hex()
