@@ -15,11 +15,11 @@ type Router struct {
 func NewServer(cfg *config.HTTP, serverHandlers []HttpHandlers) *http.Server {
 	return &http.Server{
 		Addr:    cfg.URL + ":" + cfg.Port,
-		Handler: NewRouter(cfg.GinMode, serverHandlers),
+		Handler: newRouter(cfg.GinMode, serverHandlers),
 	}
 }
 
-func NewRouter(ginMode string, handlers []HttpHandlers) *Router {
+func newRouter(ginMode string, handlers []HttpHandlers) *Router {
 	gin.SetMode(ginMode)
 	router := &Router{gin.Default()}
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
