@@ -109,7 +109,7 @@ func checkErr(ctx *gin.Context, err error) {
 	case errors.Is(err, service.ErrUserAlreadyExists):
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Message: err.Error()})
 	default:
-		slog.Error("handler", "checkErr", err.Error())
+		slog.Error(ctx.Request.RequestURI, "error", err.Error())
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Message: "Internal Server Error"})
 	}
 }

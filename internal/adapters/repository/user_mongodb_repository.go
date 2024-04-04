@@ -52,8 +52,7 @@ func (ur *UserMongoRepository) Save(ctx *gin.Context, u model.User) (*model.User
 func (ur *UserMongoRepository) Update(ctx *gin.Context, u model.User) (*model.User, error) {
 	oid, err := primitive.ObjectIDFromHex(u.ID)
 	if err != nil {
-		slog.Error("converting user id from request to object id.", "error", err)
-		return nil, nil
+		return nil, err
 	}
 	updatedUser := &model.User{}
 	filter := bson.D{{"_id", oid}}
@@ -76,8 +75,7 @@ func (ur *UserMongoRepository) ExistsByFirstNameAndLastName(ctx *gin.Context, u 
 	if len(u.ID) != 0 {
 		oid, err = primitive.ObjectIDFromHex(u.ID)
 		if err != nil {
-			slog.Error("converting user id from request to object id.", "error", err)
-			return false, nil
+			return false, err
 		}
 	}
 	filter := bson.D{

@@ -53,7 +53,6 @@ func (r ValidationError) Error() string {
 func (s *UserService) Find(ctx *gin.Context, id string) (*model.User, error) {
 	user, err := s.repo.FindById(ctx, id)
 	if err != nil {
-		slog.Error("userService.Find", "error", err)
 		return nil, err
 	}
 	if user == nil {
@@ -71,7 +70,6 @@ func (s *UserService) Save(ctx *gin.Context, u model.User) (*model.User, error) 
 	}
 	exists, err := s.repo.ExistsByFirstNameAndLastName(ctx, u)
 	if err != nil {
-		slog.Error("userService.ExistsByFirstNameAndLastName", "error", err)
 		return nil, err
 	}
 	if exists {
@@ -79,7 +77,6 @@ func (s *UserService) Save(ctx *gin.Context, u model.User) (*model.User, error) 
 	}
 	user, err := s.repo.Save(ctx, u)
 	if err != nil {
-		slog.Error("userService.Save", "error", err)
 		return nil, err
 	}
 	return user, nil
@@ -93,7 +90,6 @@ func (s *UserService) Update(ctx *gin.Context, u model.User) (*model.User, error
 	}
 	user, err := s.repo.FindById(ctx, u.ID)
 	if err != nil {
-		slog.Error("userService.FindById", "error", err)
 		return nil, err
 	}
 	if user == nil {
@@ -101,7 +97,6 @@ func (s *UserService) Update(ctx *gin.Context, u model.User) (*model.User, error
 	}
 	exists, err := s.repo.ExistsByFirstNameAndLastName(ctx, u)
 	if err != nil {
-		slog.Error("userService.ExistsByFirstNameAndLastName", "error", err)
 		return nil, err
 	}
 	if exists {
@@ -109,7 +104,6 @@ func (s *UserService) Update(ctx *gin.Context, u model.User) (*model.User, error
 	}
 	user, err = s.repo.Update(ctx, u)
 	if err != nil {
-		slog.Error("userService.Update", "error", err)
 		return nil, err
 	}
 	return user, nil
