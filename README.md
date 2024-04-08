@@ -20,3 +20,5 @@ Click here -> [Documentation](http://localhost:8080/swagger/index.html)
 - Go 1.21
 - Gin
 - MongoDB
+- Swagger
+- Docker
