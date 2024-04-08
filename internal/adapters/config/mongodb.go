@@ -1,15 +1,14 @@
-package mongodb
+package config
 
 import (
 	"context"
-	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/adapters/config"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 	"log/slog"
 )
 
-func Connect(db config.DB) (*mongo.Database, error) {
+func Connect(db DB) (*mongo.Database, error) {
 	slog.Info("Connecting to mongodb database")
 	opts := options.Client().ApplyURI(db.Uri).SetAuth(
 		options.Credential{
