@@ -1,8 +1,8 @@
 package service
 
 import (
+	"context"
 	"errors"
-	"github.com/gin-gonic/gin"
 	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/core/domain/model"
 	"log/slog"
 	"regexp"
@@ -17,10 +17,10 @@ var (
 )
 
 type UserRepository interface {
-	FindById(ctx *gin.Context, id string) (*model.User, error)
-	Save(ctx *gin.Context, u model.User) (*model.User, error)
-	Update(ctx *gin.Context, u model.User) (*model.User, error)
-	ExistsByFirstNameAndLastName(ctx *gin.Context, u model.User) (bool, error)
+	FindById(ctx context.Context, id string) (*model.User, error)
+	Save(ctx context.Context, u model.User) (*model.User, error)
+	Update(ctx context.Context, u model.User) (*model.User, error)
+	ExistsByFirstNameAndLastName(ctx context.Context, u model.User) (bool, error)
 }
 type UserService struct {
 	repo UserRepository
@@ -50,7 +50,7 @@ func (r ValidationError) Error() string {
 	return r.Message
 }
 
-func (s *UserService) Find(ctx *gin.Context, id string) (*model.User, error) {
+func (s *UserService) Find(ctx context.Context, id string) (*model.User, error) {
 	user, err := s.repo.FindById(ctx, id)
 	if err != nil {
 		return nil, err
@@ -62,7 +62,7 @@ func (s *UserService) Find(ctx *gin.Context, id string) (*model.User, error) {
 	return user, nil
 }
 
-func (s *UserService) Save(ctx *gin.Context, u model.User) (*model.User, error) {
+func (s *UserService) Save(ctx context.Context, u model.User) (*model.User, error) {
 	validationErrors := s.Validate(u)
 	if validationErrors != nil {
 		slog.Warn("validationError", "error", validationErrors)
@@ -82,7 +82,7 @@ func (s *UserService) Save(ctx *gin.Context, u model.User) (*model.User, error) 
 	return user, nil
 }
 
-func (s *UserService) Update(ctx *gin.Context, u model.User) (*model.User, error) {
+func (s *UserService) Update(ctx context.Context, u model.User) (*model.User, error) {
 	validationErrors := s.Validate(u)
 	if validationErrors != nil {
 		slog.Warn("validationError", "error", validationErrors)

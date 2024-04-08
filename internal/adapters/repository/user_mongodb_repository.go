@@ -1,8 +1,8 @@
 package repository
 
 import (
+	"context"
 	"errors"
-	"github.com/gin-gonic/gin"
 	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/core/domain/model"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -21,7 +21,7 @@ func NewUserRepo(db *mongo.Database) *UserMongoRepository {
 	return &UserMongoRepository{db: db}
 }
 
-func (ur *UserMongoRepository) FindById(ctx *gin.Context, id string) (*model.User, error) {
+func (ur *UserMongoRepository) FindById(ctx context.Context, id string) (*model.User, error) {
 	oid, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		slog.Error("converting user id from request to object id.", "error", err)
@@ -39,7 +39,7 @@ func (ur *UserMongoRepository) FindById(ctx *gin.Context, id string) (*model.Use
 	}
 	return user, nil
 }
-func (ur *UserMongoRepository) Save(ctx *gin.Context, u model.User) (*model.User, error) {
+func (ur *UserMongoRepository) Save(ctx context.Context, u model.User) (*model.User, error) {
 	result, err := ur.db.Collection(userCollection).InsertOne(ctx, u)
 	if err != nil {
 		slog.Error("failed to insert user", "error", err)
@@ -49,7 +49,7 @@ func (ur *UserMongoRepository) Save(ctx *gin.Context, u model.User) (*model.User
 	return &u, nil
 }
 
-func (ur *UserMongoRepository) Update(ctx *gin.Context, u model.User) (*model.User, error) {
+func (ur *UserMongoRepository) Update(ctx context.Context, u model.User) (*model.User, error) {
 	oid, err := primitive.ObjectIDFromHex(u.ID)
 	if err != nil {
 		return nil, err
@@ -69,7 +69,7 @@ func (ur *UserMongoRepository) Update(ctx *gin.Context, u model.User) (*model.Us
 	}
 	return updatedUser, nil
 }
-func (ur *UserMongoRepository) ExistsByFirstNameAndLastName(ctx *gin.Context, u model.User) (bool, error) {
+func (ur *UserMongoRepository) ExistsByFirstNameAndLastName(ctx context.Context, u model.User) (bool, error) {
 	var oid primitive.ObjectID
 	var err error
 	if len(u.ID) != 0 {
