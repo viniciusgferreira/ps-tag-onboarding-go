@@ -42,9 +42,6 @@ const docTemplate = `{
                 "responses": {
                     "400": {
                         "description": "Bad Request"
-                    },
-                    "409": {
-                        "description": "Conflict"
                     }
                 }
             }
@@ -107,20 +104,11 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "400": {
-                        "description": "Invalid id",
-                        "schema": {
-                            "$ref": "#/definitions/model.User"
-                        }
-                    },
                     "404": {
-                        "description": "User not found",
+                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/model.User"
                         }
-                    },
-                    "409": {
-                        "description": "User already exists"
                     }
                 }
             }

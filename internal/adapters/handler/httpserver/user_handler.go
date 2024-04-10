@@ -36,7 +36,7 @@ func (h *UserHandler) SetupRoutes(r *Router) {
 }
 
 // FindById godoc
-// @Summary FindById user by ID
+// @Summary Find user by ID
 // @Description Get user based on request path
 // @Tags users
 // @Produce json
@@ -62,7 +62,6 @@ func (h *UserHandler) FindById(ctx *gin.Context) {
 // @Produce json
 // @Param User body model.User true "User input"
 // @Sucess 201 {object} modes.User
-// @Failure 409
 // @Failure 400
 // @Router /users [post]
 func (h *UserHandler) Create(ctx *gin.Context) {
@@ -87,9 +86,7 @@ func (h *UserHandler) Create(ctx *gin.Context) {
 // @Param id path int true "ID"
 // @Param User body model.User true "User input"
 // @Sucess 200 {object} model.User
-// @Failure 404 {object} model.User "User not found"
-// @Failure 400 {object} model.User "Invalid id"
-// @Failure 409 "User already exists"
+// @Failure 404 {object} model.User
 // @Router /users/{id} [put]
 func (h *UserHandler) Update(ctx *gin.Context) {
 	u := model.User{}

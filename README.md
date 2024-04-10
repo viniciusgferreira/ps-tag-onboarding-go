@@ -6,8 +6,8 @@
 Make sure you have the following mandatory software installed:
 - Docker && Docker-compose
 
-To run the application, you only need to run the docker-compose build and run.   
-```docker-compose up -d```   
+To run the application, you need to run generate docs, build and run docker containers using the makefile.   
+```make```   
 
 Server is running default at localhost:8080, you can change in docker-compose.yml
 
@@ -15,6 +15,8 @@ Server is running default at localhost:8080, you can change in docker-compose.ym
 You can acess the Swagger API docs with the application running.   
 Click here -> [Documentation](http://localhost:8080/swagger/index.html)
 
+To generate docs, run:
+```make docs```
 
 ## Technologies Used
 - Go 1.21

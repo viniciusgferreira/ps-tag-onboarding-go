@@ -1,5 +1,5 @@
 definitions:
-  models.User:
+  model.User:
     properties:
       age:
         type: integer
@@ -30,14 +30,12 @@ paths:
         name: User
         required: true
         schema:
-          $ref: '#/definitions/models.User'
+          $ref: '#/definitions/model.User'
       produces:
       - application/json
       responses:
         "400":
           description: Bad Request
-        "409":
-          description: Conflict
       summary: Create a new user
       tags:
       - users
@@ -74,20 +72,14 @@ paths:
         name: User
         required: true
         schema:
-          $ref: '#/definitions/models.User'
+          $ref: '#/definitions/model.User'
       produces:
       - application/json
       responses:
-        "400":
-          description: Invalid id
-          schema:
-            $ref: '#/definitions/models.User'
         "404":
-          description: User not found
+          description: Not Found
           schema:
-            $ref: '#/definitions/models.User'
-        "409":
-          description: User already exists
+            $ref: '#/definitions/model.User'
       summary: Update user by ID
       tags:
       - users
