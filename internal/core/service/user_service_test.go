@@ -76,7 +76,7 @@ func TestFindUser(t *testing.T) {
 		mockRepo := &MockUserRepository{Users: Users}
 		service := NewUserService(mockRepo)
 
-		result, err := service.Find(nil, validUser.ID)
+		result, err := service.FindById(nil, validUser.ID)
 		if err != nil {
 			t.Errorf("error finding user: %v", err)
 		}
@@ -88,7 +88,7 @@ func TestFindUser(t *testing.T) {
 		mockRepo := &MockUserRepository{}
 		service := NewUserService(mockRepo)
 
-		result, err := service.Find(nil, validUser.ID)
+		result, err := service.FindById(nil, validUser.ID)
 		if result != nil {
 			t.Errorf("should return userNotFound")
 		}
@@ -101,7 +101,7 @@ func TestUpdateUser(t *testing.T) {
 	t.Run("Update valid user", func(t *testing.T) {
 		Users := []model.User{validUser}
 		mockRepo := &MockUserRepository{Users: Users}
-		service := &UserService{repo: mockRepo}
+		service := &Service{repo: mockRepo}
 
 		updatedUser := model.User{
 			ID:        validUser.ID,
@@ -132,7 +132,7 @@ func TestUpdateUser(t *testing.T) {
 		}
 		Users := []model.User{validUser, updatedUser}
 		mockRepo := &MockUserRepository{Users: Users}
-		service := &UserService{repo: mockRepo}
+		service := &Service{repo: mockRepo}
 
 		changedValidUser := model.User{
 			ID:        validUser.ID,
@@ -154,7 +154,7 @@ func TestUpdateUser(t *testing.T) {
 	t.Run("return error with existing user first and last name", func(t *testing.T) {
 		Users := []model.User{validUser}
 		mockRepo := &MockUserRepository{Users: Users}
-		service := &UserService{repo: mockRepo}
+		service := &Service{repo: mockRepo}
 
 		updatedUser := model.User{
 			ID:        primitive.NewObjectID().Hex(),

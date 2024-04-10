@@ -1,6 +1,7 @@
 package httpserver
 
 import (
+	"context"
 	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/core/domain/model"
@@ -15,21 +16,27 @@ type ErrorResponse struct {
 }
 
 type UserHandler struct {
-	service service.UserService
+	service UserService
 }
 
-func NewUserHandler(s service.UserService) *UserHandler {
+func NewUserHandler(s UserService) *UserHandler {
 	return &UserHandler{service: s}
 }
 
+type UserService interface {
+	Save(ctx context.Context, u model.User) (*model.User, error)
+	Update(ctx context.Context, u model.User) (*model.User, error)
+	FindById(ctx context.Context, id string) (*model.User, error)
+}
+
 func (h *UserHandler) SetupRoutes(r *Router) {
-	r.Handle(http.MethodGet, "/users/:id", h.GetByID)
+	r.Handle(http.MethodGet, "/users/:id", h.FindById)
 	r.Handle(http.MethodPost, "/users", h.Create)
 	r.Handle(http.MethodPut, "/users/:id", h.Update)
 }
 
-// GetByID godoc
-// @Summary Find user by ID
+// FindById godoc
+// @Summary FindById user by ID
 // @Description Get user based on request path
 // @Tags users
 // @Produce json
@@ -38,8 +45,8 @@ func (h *UserHandler) SetupRoutes(r *Router) {
 // @Failure 404
 // @Failure 400
 // @Router /users/{id} [get]
-func (h *UserHandler) GetByID(ctx *gin.Context) {
-	user, err := h.service.Find(ctx, ctx.Param("id"))
+func (h *UserHandler) FindById(ctx *gin.Context) {
+	user, err := h.service.FindById(ctx, ctx.Param("id"))
 	if err != nil {
 		checkErr(ctx, err)
 		return

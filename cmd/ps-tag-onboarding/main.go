@@ -32,7 +32,7 @@ func main() {
 	userService := service.NewUserService(userRepo)
 
 	var serverHandlers []httpserver.HttpHandlers
-	serverHandlers = append(serverHandlers, httpserver.NewUserHandler(*userService))
+	serverHandlers = append(serverHandlers, httpserver.NewUserHandler(userService))
 
 	server := httpserver.NewServer(cfg.HTTP, serverHandlers)
 
