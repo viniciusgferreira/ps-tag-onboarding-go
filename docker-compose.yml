@@ -13,6 +13,17 @@ services:
       CONFIG_PATH: /app/configs/config.yml
     ports:
       - "8080:8080"
+      - "40000:40000"
+    command:
+      - dlv
+      - --listen=:40000
+      - --log
+      - --headless
+      - --api-version=2
+      - --accept-multiclient
+      - exec
+      - /app/tag-onboarding-api
+      - --continue
 
   mongo:
     image: mongo
