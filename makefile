@@ -10,6 +10,8 @@ default: run-with-docs
 
 run:
 	@docker compose -f $(COMPOSE_FILE) up -d
+run-with-build:
+	@docker compose -f $(COMPOSE_FILE) up -d --build
 run-with-docs:
 	@swag init -g cmd/ps-tag-onboarding/main.go --output ./docs
 	@docker compose -f $(COMPOSE_FILE) up -d
