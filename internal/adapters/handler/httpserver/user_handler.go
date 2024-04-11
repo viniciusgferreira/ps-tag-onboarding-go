@@ -4,11 +4,15 @@ import (
 	"context"
 	"errors"
 	"github.com/gin-gonic/gin"
+	"github.com/golodash/galidator"
+	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/adapters/handler/dto"
 	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/core/domain/model"
 	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/core/service"
 	"log/slog"
 	"net/http"
 )
+
+var validator = galidator.New().Validator(dto.UserInput{})
 
 type ErrorResponse struct {
 	Message string   `json:"error"`
@@ -65,11 +69,15 @@ func (h *UserHandler) FindById(ctx *gin.Context) {
 // @Failure 400
 // @Router /users [post]
 func (h *UserHandler) Create(ctx *gin.Context) {
-	user := model.User{}
-	if err := ctx.ShouldBindJSON(&user); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Message: err.Error()})
+	userInput := dto.UserInput{}
+	if err := ctx.ShouldBindJSON(&userInput); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, dto.ErrorDTO{
+			Message: "user did not pass validation",
+			Details: validator.DecryptErrors(err),
+		})
 		return
 	}
+	user := model.NewUser(userInput)
 	savedUser, err := h.service.Save(ctx, user)
 	if err != nil {
 		checkErr(ctx, err)
@@ -89,12 +97,16 @@ func (h *UserHandler) Create(ctx *gin.Context) {
 // @Failure 404 {object} model.User
 // @Router /users/{id} [put]
 func (h *UserHandler) Update(ctx *gin.Context) {
-	u := model.User{}
-	u.ID = ctx.Param("id")
-	if err := ctx.ShouldBindJSON(&u); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Message: err.Error()})
+	userInput := dto.UserInput{}
+	if err := ctx.ShouldBindJSON(&userInput); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, dto.ErrorDTO{
+			Message: "user did not pass validation",
+			Details: validator.DecryptErrors(err),
+		})
 		return
 	}
+	u := model.NewUser(userInput)
+	u.ID = ctx.Param("id")
 	updatedUser, err := h.service.Update(ctx, u)
 	if err != nil {
 		checkErr(ctx, err)

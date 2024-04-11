@@ -24,3 +24,4 @@ To generate docs, run:
 - MongoDB
 - Swagger
 - Docker
+- Galidator
