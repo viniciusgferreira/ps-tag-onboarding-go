@@ -122,7 +122,7 @@ func checkErr(ctx *gin.Context, err error) {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Message: validationErr.Message, Details: validationErr.Details})
 	case errors.Is(err, service.ErrUserNotFound):
 		ctx.AbortWithStatusJSON(http.StatusNotFound, ErrorResponse{Message: err.Error()})
-	case errors.Is(err, service.ErrUserAlreadyExists):
+	case errors.Is(err, service.ErrUsernameTaken):
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{Message: err.Error()})
 	default:
 		slog.Error(ctx.Request.RequestURI, "error", err.Error())

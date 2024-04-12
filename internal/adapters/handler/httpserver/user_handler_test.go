@@ -66,7 +66,7 @@ func TestUserHandler_Create(t *testing.T) {
 		ctx.Request = &http.Request{
 			Body: io.NopCloser(bytes.NewBuffer(jsonBody)),
 		}
-		err := service.ErrUserAlreadyExists
+		err := service.ErrUsernameTaken
 		mockUserService.On("Save", ctx, user).Return(nil, err).Once()
 
 		handler.Create(ctx)

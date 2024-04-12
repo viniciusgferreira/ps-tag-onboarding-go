@@ -9,11 +9,11 @@ import (
 )
 
 var (
-	ErrUserNotFound      = errors.New("user not found")
-	ErrUserAlreadyExists = errors.New("user with the same first and last name already exists")
-	ErrInvalidAge        = errors.New("user must be at least 18 years old")
-	ErrInvalidName       = errors.New("user first and last name cannot be empty")
-	ErrInvalidEmail      = errors.New("invalid email")
+	ErrUserNotFound  = errors.New("user not found")
+	ErrUsernameTaken = errors.New("user with the same first and last name already exists")
+	ErrInvalidAge    = errors.New("user must be at least 18 years old")
+	ErrInvalidName   = errors.New("user first and last name cannot be empty")
+	ErrInvalidEmail  = errors.New("invalid email")
 )
 
 type UserRepository interface {
@@ -68,45 +68,45 @@ func (s *Service) Save(ctx context.Context, u model.User) (*model.User, error) {
 		slog.Warn("validationError", "error", validationErrors)
 		return nil, NewValidationErrorWithDetails(validationErrors)
 	}
-	exists, err := s.repo.ExistsByFirstNameAndLastName(ctx, u)
+	usernameTaken, err := s.repo.ExistsByFirstNameAndLastName(ctx, u)
 	if err != nil {
 		return nil, err
 	}
-	if exists {
-		return nil, ErrUserAlreadyExists
+	if usernameTaken {
+		return nil, ErrUsernameTaken
 	}
-	user, err := s.repo.Save(ctx, u)
+	savedUser, err := s.repo.Save(ctx, u)
 	if err != nil {
 		return nil, err
 	}
-	return user, nil
+	return savedUser, nil
 }
 
-func (s *Service) Update(ctx context.Context, u model.User) (*model.User, error) {
-	validationErrors := s.Validate(u)
+func (s *Service) Update(ctx context.Context, updatedUser model.User) (*model.User, error) {
+	validationErrors := s.Validate(updatedUser)
 	if validationErrors != nil {
 		slog.Warn("validationError", "error", validationErrors)
 		return nil, NewValidationErrorWithDetails(validationErrors)
 	}
-	user, err := s.repo.FindById(ctx, u.ID)
+	existingUser, err := s.repo.FindById(ctx, updatedUser.ID)
 	if err != nil {
 		return nil, err
 	}
-	if user == nil {
+	if existingUser == nil {
 		return nil, ErrUserNotFound
 	}
-	exists, err := s.repo.ExistsByFirstNameAndLastName(ctx, u)
+	usernameTaken, err := s.repo.ExistsByFirstNameAndLastName(ctx, updatedUser)
 	if err != nil {
 		return nil, err
 	}
-	if exists {
-		return nil, ErrUserAlreadyExists
+	if usernameTaken {
+		return nil, ErrUsernameTaken
 	}
-	user, err = s.repo.Update(ctx, u)
+	updatedUserResult, err := s.repo.Update(ctx, updatedUser)
 	if err != nil {
 		return nil, err
 	}
-	return user, nil
+	return updatedUserResult, nil
 }
 func (s *Service) Validate(u model.User) []error {
 	var validationErrors []error
