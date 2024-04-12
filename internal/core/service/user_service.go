@@ -5,15 +5,11 @@ import (
 	"errors"
 	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/core/domain/model"
 	"log/slog"
-	"regexp"
 )
 
 var (
 	ErrUserNotFound  = errors.New("user not found")
 	ErrUsernameTaken = errors.New("user with the same first and last name already exists")
-	ErrInvalidAge    = errors.New("user must be at least 18 years old")
-	ErrInvalidName   = errors.New("user first and last name cannot be empty")
-	ErrInvalidEmail  = errors.New("invalid email")
 )
 
 type UserRepository interface {
@@ -63,11 +59,6 @@ func (s *Service) FindById(ctx context.Context, id string) (*model.User, error) 
 }
 
 func (s *Service) Save(ctx context.Context, u model.User) (*model.User, error) {
-	validationErrors := s.Validate(u)
-	if validationErrors != nil {
-		slog.Warn("validationError", "error", validationErrors)
-		return nil, NewValidationErrorWithDetails(validationErrors)
-	}
 	usernameTaken, err := s.repo.ExistsByFirstNameAndLastName(ctx, u)
 	if err != nil {
 		return nil, err
@@ -83,11 +74,6 @@ func (s *Service) Save(ctx context.Context, u model.User) (*model.User, error) {
 }
 
 func (s *Service) Update(ctx context.Context, updatedUser model.User) (*model.User, error) {
-	validationErrors := s.Validate(updatedUser)
-	if validationErrors != nil {
-		slog.Warn("validationError", "error", validationErrors)
-		return nil, NewValidationErrorWithDetails(validationErrors)
-	}
 	existingUser, err := s.repo.FindById(ctx, updatedUser.ID)
 	if err != nil {
 		return nil, err
@@ -107,42 +93,4 @@ func (s *Service) Update(ctx context.Context, updatedUser model.User) (*model.Us
 		return nil, err
 	}
 	return updatedUserResult, nil
-}
-func (s *Service) Validate(u model.User) []error {
-	var validationErrors []error
-	if err := s.validateName(u.FirstName, u.LastName); err != nil {
-		validationErrors = append(validationErrors, err)
-	}
-	if err := s.validateEmail(u.Email); err != nil {
-		validationErrors = append(validationErrors, err)
-	}
-	if err := s.validateAge(u.Age); err != nil {
-		validationErrors = append(validationErrors, err)
-	}
-	if len(validationErrors) > 0 {
-		return validationErrors
-	}
-	return nil
-}
-
-func (s *Service) validateName(firstName, lastName string) error {
-	if len(firstName) <= 0 || len(lastName) <= 0 {
-		return ErrInvalidName
-	}
-	return nil
-}
-
-func (s *Service) validateEmail(email string) error {
-	emailRegex := regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
-	if !emailRegex.MatchString(email) {
-		return ErrInvalidEmail
-	}
-	return nil
-}
-
-func (s *Service) validateAge(age int) error {
-	if age < 18 {
-		return ErrInvalidAge
-	}
-	return nil
 }

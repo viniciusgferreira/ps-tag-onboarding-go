@@ -77,8 +77,8 @@ func (h *UserHandler) Create(ctx *gin.Context) {
 		})
 		return
 	}
-	user := model.NewUser(userInput)
-	savedUser, err := h.service.Save(ctx, user)
+	user, err := model.NewUser(ctx.Param("id"), userInput.FirstName, userInput.LastName, userInput.Email, userInput.Age)
+	savedUser, err := h.service.Save(ctx, *user)
 	if err != nil {
 		checkErr(ctx, err)
 		return
@@ -105,9 +105,8 @@ func (h *UserHandler) Update(ctx *gin.Context) {
 		})
 		return
 	}
-	u := model.NewUser(userInput)
-	u.ID = ctx.Param("id")
-	updatedUser, err := h.service.Update(ctx, u)
+	user, err := model.NewUser(ctx.Param("id"), userInput.FirstName, userInput.LastName, userInput.Email, userInput.Age)
+	updatedUser, err := h.service.Update(ctx, *user)
 	if err != nil {
 		checkErr(ctx, err)
 		return
