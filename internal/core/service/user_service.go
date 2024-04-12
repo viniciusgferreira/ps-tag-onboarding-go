@@ -31,17 +31,6 @@ type ValidationError struct {
 	Details []string
 }
 
-func NewValidationErrorWithDetails(validationErrors []error) ValidationError {
-	details := make([]string, len(validationErrors))
-	for i, err := range validationErrors {
-		details[i] = err.Error()
-	}
-	return ValidationError{
-		Message: "user did not pass validation",
-		Details: details,
-	}
-}
-
 func (r ValidationError) Error() string {
 	return r.Message
 }
