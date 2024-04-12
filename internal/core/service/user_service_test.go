@@ -1,8 +1,6 @@
 package service
 
 import (
-	"errors"
-	"github.com/stretchr/testify/assert"
 	"github.com/viniciusgferreira/ps-tag-onboarding-go/internal/core/domain/model"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"log"
@@ -10,13 +8,10 @@ import (
 	"testing"
 )
 
-var validUser = model.User{
-	ID:        primitive.NewObjectID().Hex(),
-	FirstName: "John",
-	LastName:  "Doe",
-	Email:     "john@doe.com",
-	Age:       21,
-}
+var (
+	user, _   = model.NewUser(primitive.NewObjectID().Hex(), "John", "Doe", "john@doe.com", 21)
+	validUser = *user
+)
 
 func TestSaveUser(t *testing.T) {
 	t.Run("Save valid user", func(t *testing.T) {
@@ -34,33 +29,14 @@ func TestSaveUser(t *testing.T) {
 			t.Errorf("user not saved properly in mock repository")
 		}
 	})
-	t.Run("Should return error with empty user", func(t *testing.T) {
-		emptyUser := model.User{}
-		mockRepo := &MockUserRepository{}
-		service := NewUserService(mockRepo)
-
-		result, err := service.Save(nil, emptyUser)
-		if err == nil || result != nil {
-			t.Errorf("error saving user: %v", err)
-		}
-		if len(mockRepo.Users) != 0 {
-			t.Errorf("empty user should not be saved in mock repository")
-		}
-	})
 	t.Run("Should return error for user that already exists", func(t *testing.T) {
 		Users := []model.User{validUser}
 		mockRepo := &MockUserRepository{Users: Users}
 		service := NewUserService(mockRepo)
 
-		newUser := model.User{
-			ID:        primitive.NewObjectID().Hex(),
-			FirstName: "John",
-			LastName:  "Doe",
-			Email:     "doe@j.com",
-			Age:       20,
-		}
+		newUser, _ := model.NewUser(primitive.NewObjectID().Hex(), "John", "Doe", "doe@j.com", 20)
 
-		_, err := service.Save(nil, newUser)
+		_, err := service.Save(nil, *newUser)
 		if err == nil {
 			t.Errorf("should return error saving user: %v", err)
 		}
@@ -103,19 +79,13 @@ func TestUpdateUser(t *testing.T) {
 		mockRepo := &MockUserRepository{Users: Users}
 		service := &Service{repo: mockRepo}
 
-		updatedUser := model.User{
-			ID:        validUser.ID,
-			FirstName: "Doe",
-			LastName:  "NewUserService",
-			Email:     "new@doe.com",
-			Age:       23,
-		}
+		updatedUser, _ := model.NewUser(validUser.ID, "Doe", "NewUserService", "new@doe.com", 23)
 
-		result, err := service.Update(nil, updatedUser)
+		result, err := service.Update(nil, *updatedUser)
 		if err != nil {
 			t.Errorf("error finding user: %v", err)
 		}
-		if !reflect.DeepEqual(result, &updatedUser) {
+		if !reflect.DeepEqual(result, updatedUser) {
 			t.Errorf("expected: %v, result: %v", updatedUser, result)
 		}
 		if len(mockRepo.Users) != 1 {
@@ -123,26 +93,14 @@ func TestUpdateUser(t *testing.T) {
 		}
 	})
 	t.Run("return error on update with first and lastname that already exists", func(t *testing.T) {
-		updatedUser := model.User{
-			ID:        primitive.NewObjectID().Hex(),
-			FirstName: "John",
-			LastName:  "Doe Second",
-			Email:     "new@doe.com",
-			Age:       25,
-		}
-		Users := []model.User{validUser, updatedUser}
+		updatedUser, _ := model.NewUser(primitive.NewObjectID().Hex(), "John", "Doe Second", "new@doe.com", 25)
+		Users := []model.User{validUser, *updatedUser}
 		mockRepo := &MockUserRepository{Users: Users}
 		service := &Service{repo: mockRepo}
 
-		changedValidUser := model.User{
-			ID:        validUser.ID,
-			FirstName: updatedUser.FirstName, // already exists
-			LastName:  updatedUser.LastName,  // already exists
-			Email:     "new@doe.com",
-			Age:       25,
-		}
+		changedValidUser, _ := model.NewUser(validUser.ID, updatedUser.FirstName, updatedUser.LastName, "new@doe.com", 25)
 
-		_, err := service.Update(nil, changedValidUser)
+		_, err := service.Update(nil, *changedValidUser)
 		if err == nil {
 			t.Errorf("should return error updating user: %v", err)
 		}
@@ -156,117 +114,11 @@ func TestUpdateUser(t *testing.T) {
 		mockRepo := &MockUserRepository{Users: Users}
 		service := &Service{repo: mockRepo}
 
-		updatedUser := model.User{
-			ID:        primitive.NewObjectID().Hex(),
-			FirstName: "John",
-			LastName:  "Doe",
-			Email:     "new@doe.com",
-			Age:       23,
-		}
+		updatedUser, _ := model.NewUser(primitive.NewObjectID().Hex(), "John", "Doe", "new@doe.com", 23)
 
-		result, err := service.Update(nil, updatedUser)
+		result, err := service.Update(nil, *updatedUser)
 		if err == nil || result != nil {
 			t.Errorf("update should fail: %v", err)
 		}
-	})
-}
-func TestUserValidation(t *testing.T) {
-	t.Run("Validate user without error", func(t *testing.T) {
-		mockRepo := &MockUserRepository{}
-		service := NewUserService(mockRepo)
-
-		errs := service.Validate(validUser)
-		if errs != nil {
-			t.Errorf("error validating user: %v", errs)
-		}
-	})
-	t.Run("Should return error with invalid user", func(t *testing.T) {
-		invalidUser := model.User{}
-		mockRepo := &MockUserRepository{}
-		service := NewUserService(mockRepo)
-
-		errs := service.Validate(invalidUser)
-		if errs == nil || reflect.TypeOf(errs).String() != "[]error" {
-			t.Errorf("validation should fail: %v", errs)
-		}
-		assert.Contains(t, errs, ErrInvalidName)
-		assert.Contains(t, errs, ErrInvalidEmail)
-		assert.Contains(t, errs, ErrInvalidAge)
-	})
-	t.Run("Should return error with invalid age", func(t *testing.T) {
-		userWithInvalidAge := model.User{
-			ID:        primitive.NewObjectID().Hex(),
-			FirstName: "John",
-			LastName:  "Doe",
-			Email:     "john@doe.com",
-			Age:       17,
-		}
-		mockRepo := &MockUserRepository{}
-		service := NewUserService(mockRepo)
-
-		errs := service.Validate(userWithInvalidAge)
-		if len(errs) == 0 || !errors.Is(errs[0], ErrInvalidAge) {
-			t.Errorf("expected err: %v, got: %v\n", ErrInvalidAge, errs[0])
-			return
-		}
-	})
-	t.Run("Should return error with invalid email", func(t *testing.T) {
-		userWithInvalidEmail := model.User{
-			ID:        primitive.NewObjectID().Hex(),
-			FirstName: "John",
-			LastName:  "Doe",
-			Email:     "johndoe2.com",
-			Age:       20,
-		}
-		mockRepo := &MockUserRepository{}
-		service := NewUserService(mockRepo)
-
-		errs := service.Validate(userWithInvalidEmail)
-		if len(errs) != 1 {
-			t.Errorf("expected err: %v, got: %v\n", ErrInvalidEmail, nil)
-			return
-		}
-		if !errors.Is(ErrInvalidEmail, errs[0]) {
-			t.Errorf("expected err: %v, got: %v\n", ErrInvalidEmail, errs[0])
-		}
-	})
-	t.Run("Should return two errors with invalid age and email", func(t *testing.T) {
-		userWithInvalidEmailandAge := model.User{
-			ID:        primitive.NewObjectID().Hex(),
-			FirstName: "John",
-			LastName:  "Doe",
-			Email:     "johndoe2.com",
-			Age:       17,
-		}
-		mockRepo := &MockUserRepository{}
-		service := NewUserService(mockRepo)
-
-		errs := service.Validate(userWithInvalidEmailandAge)
-		if len(errs) != 2 {
-			t.Errorf("expected two errors, got %v errors\n", len(errs))
-			return
-		}
-		assert.Contains(t, errs, ErrInvalidEmail)
-		assert.Contains(t, errs, ErrInvalidAge)
-	})
-	t.Run("Should return three errors with invalid name, age and email", func(t *testing.T) {
-		invalidUser := model.User{
-			ID:        primitive.NewObjectID().Hex(),
-			FirstName: "John",
-			LastName:  "",
-			Email:     "johndoe2.com",
-			Age:       17,
-		}
-		mockRepo := &MockUserRepository{}
-		service := NewUserService(mockRepo)
-
-		errs := service.Validate(invalidUser)
-		if len(errs) != 3 {
-			t.Errorf("expected three errors, got %v errors\n", len(errs))
-			return
-		}
-		assert.Contains(t, errs, ErrInvalidName)
-		assert.Contains(t, errs, ErrInvalidEmail)
-		assert.Contains(t, errs, ErrInvalidAge)
 	})
 }
