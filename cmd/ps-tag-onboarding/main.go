@@ -24,7 +24,8 @@ import (
 func main() {
 	cfg := config.New()
 	slog.Info("Starting the application", "app", cfg.App.Name, "env", cfg.App.Env)
-	db, err := config.Connect(*cfg.DB)
+	ctx := context.Background()
+	db, err := config.Connect(ctx, *cfg.DB)
 	if err != nil {
 		panic(err)
 	}
@@ -49,10 +50,10 @@ func main() {
 
 	sig := <-sigCh
 	slog.Info("Shutting down...", "Received signal", sig)
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	if err := server.Shutdown(ctx); err != nil {
+	if err := server.Shutdown(shutdownCtx); err != nil {
 		slog.Error("Failed to shutdown server", "error", err)
 		os.Exit(1)
 	}
