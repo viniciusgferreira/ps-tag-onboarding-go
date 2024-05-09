@@ -50,9 +50,12 @@ func main() {
 
 	sig := <-sigCh
 	slog.Info("Shutting down...", "Received signal", sig)
+	if err := db.Client().Disconnect(ctx); err != nil {
+		slog.Error("Failed to disconnect from MongoDB", "error", err)
+	}
+
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-
 	if err := server.Shutdown(shutdownCtx); err != nil {
 		slog.Error("Failed to shutdown server", "error", err)
 		os.Exit(1)
