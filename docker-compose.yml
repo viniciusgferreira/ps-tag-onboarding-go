@@ -1,0 +1,57 @@
+version: '3.1'
+
+services:
+
+  api:
+    build: .
+    hostname: tag-onboarding-api
+    restart: always
+    depends_on:
+      mongo:
+        condition: service_healthy
+    environment:
+      CONFIG_PATH: /app/configs/config.yml
+    ports:
+      - "8080:8080"
+      - "40000:40000"
+    command:
+      - dlv
+      - --listen=:40000
+      - --log
+      - --headless
+      - --api-version=2
+      - --accept-multiclient
+      - exec
+      - /app/tag-onboarding-api
+      - --continue
+
+  mongo:
+    image: mongo
+    container_name: mongo
+    restart: always
+    healthcheck:
+      test: ["CMD","mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: user
+      MONGO_INITDB_ROOT_PASSWORD: pass
+      MONGO_INITDB_DATABASE: onboardingdb
+    volumes:
+      - mongo_data_onboarding:/data/db
+  mongo-express:
+    image: mongo-express:latest
+    container_name: onboarding-database-ui
+    restart: always
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: user
+      ME_CONFIG_MONGODB_ADMINPASSWORD: pass
+      ME_CONFIG_MONGODB_SERVER: mongo
+volumes:
+  mongo_data_onboarding:
+    driver: local

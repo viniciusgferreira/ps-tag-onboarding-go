@@ -1,0 +1,86 @@
+definitions:
+  model.User:
+    properties:
+      age:
+        type: integer
+      email:
+        type: string
+      firstName:
+        type: string
+      id:
+        type: string
+      lastName:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: This is an api to manager users.
+  title: Tag Onboarding Go API
+  version: "1.0"
+paths:
+  /users:
+    post:
+      consumes:
+      - application/json
+      description: Create new user based on request body input
+      parameters:
+      - description: User input
+        in: body
+        name: User
+        required: true
+        schema:
+          $ref: '#/definitions/model.User'
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+      summary: Create a new user
+      tags:
+      - users
+  /users/{id}:
+    get:
+      description: Get user based on request path
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+      summary: Find user by ID
+      tags:
+      - users
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: User input
+        in: body
+        name: User
+        required: true
+        schema:
+          $ref: '#/definitions/model.User'
+      produces:
+      - application/json
+      responses:
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/model.User'
+      summary: Update user by ID
+      tags:
+      - users
+swagger: "2.0"
